@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { Archive, Check, LockKeyhole, Pencil, RotateCcw, Ticket, UserPlus } from "lucide-react";
+import { Archive, ArrowLeft, Check, LockKeyhole, Pencil, RotateCcw, Ticket, UserPlus } from "lucide-react";
 import { ApiError, apiRequest } from "@/src/features/auth/lib/api-client";
 import { SessionBar } from "@/src/features/auth/components/SessionBar";
 import { SessionGuard } from "@/src/features/auth/components/SessionGuard";
@@ -100,7 +100,16 @@ function AdminPageContent() {
               Administra el acceso de cada cliente y define si el equipo puede abrirle tickets.
             </p>
           </div>
-          <SessionBar />
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              href="/dashboard"
+              className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-[#002679] shadow-sm transition hover:bg-[#F7F9FC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#002679] focus-visible:ring-offset-2"
+            >
+              <ArrowLeft aria-hidden="true" className="h-4 w-4" />
+              Volver al dashboard
+            </Link>
+            <SessionBar />
+          </div>
         </header>
 
         <div className="mb-6 flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-5">

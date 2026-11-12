@@ -6,7 +6,7 @@ import { ApiError, apiRequest } from "@/src/features/auth/lib/api-client";
 import { useSession } from "@/src/features/auth/hooks/useSession";
 import { Button } from "@/src/components/ui/button";
 import { Card, CardContent } from "@/src/components/ui/card";
-import { listOrganizations } from "../lib/ticket-api";
+import { getNextTicketSequence, listOrganizations, type OpenTicket } from "../lib/ticket-api";
 
 type OrganizationOption = { id: string; name: string; code?: string };
 
@@ -45,11 +45,11 @@ function getInitials(name: string) {
     .toUpperCase();
 }
 
-function getTicketCode(userName: string, organizationCode: string, date: Date) {
+function getTicketCode(userName: string, organizationCode: string, date: Date, sequence: number) {
   const day = String(date.getUTCDate()).padStart(2, "0");
   const month = String(date.getUTCMonth() + 1).padStart(2, "0");
   const year = date.getUTCFullYear();
-  return `TK${getInitials(userName)}-${day}${month}${year}-${organizationCode}`;
+  return `TK${getInitials(userName)}-${day}${month}${year}-${organizationCode}-${String(sequence).padStart(3, "0")}`;
 }
 
 export function TicketForm() {
@@ -60,21 +60,69 @@ export function TicketForm() {
   const [process, setProcess] = useState("");
   const [description, setDescription] = useState("");
   const [loadingOrganizations, setLoadingOrganizations] = useState(true);
+  const [ticketSequence, setTicketSequence] = useState<{
+    organizationId: string;
+    value: number;
+    openTicket: OpenTicket | null;
+  } | null>(null);
+  const [sequenceError, setSequenceError] = useState<{ organizationId: string; message: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const selectedOrganization = organizations.find(
     (organization) => organization.id === organizationId,
   );
+  const selectedSequence =
+    ticketSequence?.organizationId === organizationId ? ticketSequence.value : null;
+  const selectedOpenTicket =
+    ticketSequence?.organizationId === organizationId ? ticketSequence.openTicket : null;
+  const selectedSequenceError =
+    sequenceError?.organizationId === organizationId ? sequenceError.message : "";
   const previewCode =
-    session && selectedOrganization
+    session && selectedOrganization && selectedSequence !== null
       ? getTicketCode(
           session.name,
           selectedOrganization.code || getInitials(selectedOrganization.name),
           new Date(),
+          selectedSequence,
         )
       : loadingSession
         ? "Cargando usuario..."
-        : "Selecciona un cliente";
+        : selectedOrganization
+          ? selectedSequenceError
+            ? "Correlativo no disponible"
+            : "Consultando correlativo..."
+          : "Selecciona un cliente";
+
+  useEffect(() => {
+    let active = true;
+    if (!organizationId) return;
+    void getNextTicketSequence(organizationId)
+      .then((result) => {
+        if (active) {
+          setTicketSequence({
+            organizationId,
+            value: result.nextSequence,
+            openTicket: result.openTicket,
+          });
+        }
+      })
+      .catch((sequenceLoadError: unknown) => {
+        if (active) {
+          setSequenceError(
+            {
+              organizationId,
+              message: sequenceLoadError instanceof ApiError
+                ? sequenceLoadError.message
+                : "No se pudo consultar el correlativo del cliente.",
+            },
+          );
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [organizationId]);
 
   useEffect(() => {
     let active = true;
@@ -109,6 +157,11 @@ export function TicketForm() {
     event.preventDefault();
     setError("");
 
+    if (selectedOpenTicket) {
+      setError("Este cliente ya tiene un ticket abierto. Cierra el ticket actual antes de crear otro.");
+      return;
+    }
+
     const trimmedProcess = process.trim();
     const trimmedDescription = description.trim();
     if (trimmedProcess.length < 3) {
@@ -130,7 +183,13 @@ export function TicketForm() {
           description: trimmedDescription,
         }),
       });
-      router.push(`/tickets/detail?id=${encodeURIComponent(result.ticket.code)}`);
+      setOrganizationId("");
+      setProcess("");
+      setDescription("");
+      setTicketSequence(null);
+      window.requestAnimationFrame(() => {
+        router.push(`/tickets/detail?id=${encodeURIComponent(result.ticket.code)}`);
+      });
     } catch (submitError) {
       setError(getTicketErrorMessage(submitError));
     } finally {
@@ -141,7 +200,7 @@ export function TicketForm() {
   return (
     <Card className="border-slate-300/80 bg-white shadow-md shadow-slate-900/[0.04]">
       <CardContent className="p-4 sm:p-6 lg:p-8">
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} autoComplete="off" className="space-y-6">
           <div>
             <p className="inline-flex rounded-full bg-[#E8EEF8] px-3 py-1 text-xs font-semibold text-[#002679]">
               Nuevo ticket
@@ -157,6 +216,13 @@ export function TicketForm() {
           {error && (
             <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800" role="alert">
               {error}
+            </div>
+          )}
+
+          {selectedOpenTicket && (
+            <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900" role="alert">
+              Este cliente ya tiene un ticket abierto:{" "}
+              <strong>{selectedOpenTicket.code}</strong> — {selectedOpenTicket.title}. Cierra ese ticket antes de crear otro.
             </div>
           )}
 
@@ -233,6 +299,9 @@ export function TicketForm() {
                   Previsualización del ticket
                 </p>
                 <p className="mt-1 text-lg font-bold text-[#002679]">{previewCode}</p>
+                {selectedSequenceError && (
+                  <p className="mt-1 text-xs text-amber-700" role="status">{selectedSequenceError}</p>
+                )}
               </div>
               <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600">
                 Se abrirá al confirmar
@@ -271,11 +340,12 @@ export function TicketForm() {
                 loadingSession ||
                 !session ||
                 loadingOrganizations ||
-                organizations.length === 0
+                organizations.length === 0 ||
+                Boolean(selectedOpenTicket)
               }
               className="bg-[#002679] text-white shadow-sm hover:bg-[#001d5c] focus-visible:ring-[#002679]"
             >
-              {loading ? "Abriendo ticket..." : "Abrir ticket"}
+              {loading ? "Abriendo ticket..." : selectedOpenTicket ? "Cliente con ticket abierto" : "Abrir ticket"}
             </Button>
           </div>
         </form>

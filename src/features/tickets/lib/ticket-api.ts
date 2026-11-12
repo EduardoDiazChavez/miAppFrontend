@@ -14,6 +14,12 @@ export type ApiTicket = {
   closedAt?: string | null;
 };
 
+export type OpenTicket = {
+  code: string;
+  title: string;
+  status: "OPEN" | "IN_PROGRESS" | "WAITING";
+};
+
 const statusLabels: Record<ApiTicket["status"], TicketStatus> = {
   OPEN: "Abierto",
   IN_PROGRESS: "En revisión",
@@ -65,6 +71,13 @@ export async function listTickets(options: { status?: string; page?: number; lim
 
 export async function listOrganizations() {
   return apiRequest<{ organizations: Array<{ id: string; name: string; code?: string }> }>("/tickets/organizations");
+}
+
+export function getNextTicketSequence(organizationId: string) {
+  const params = new URLSearchParams({ organizationId });
+  return apiRequest<{ nextSequence: number; openTicket: OpenTicket | null }>(
+    `/tickets/next-sequence?${params.toString()}`,
+  );
 }
 
 export function getTicket(ticketId: string) {
