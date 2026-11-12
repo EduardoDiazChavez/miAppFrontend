@@ -1,5 +1,5 @@
 import { apiRequest } from "@/src/features/auth/lib/api-client";
-import type { TicketRecord, TicketStatus, TicketPriority } from "@/src/features/dashboard/data/mockData";
+import type { TicketRecord, TicketStatus } from "@/src/features/dashboard/data/mockData";
 
 export type ApiTicket = {
   _id: string;
@@ -7,8 +7,6 @@ export type ApiTicket = {
   organizationId: string | { name?: string };
   title: string;
   description: string;
-  area: string;
-  priority: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
   status: "OPEN" | "IN_PROGRESS" | "WAITING" | "CLOSED";
   assignedTo?: { name?: string } | string;
   createdAt: string;
@@ -21,13 +19,6 @@ const statusLabels: Record<ApiTicket["status"], TicketStatus> = {
   IN_PROGRESS: "En revisión",
   WAITING: "Pendiente cierre",
   CLOSED: "Cerrado",
-};
-
-const priorityLabels: Record<ApiTicket["priority"], TicketPriority> = {
-  LOW: "Baja",
-  MEDIUM: "Media",
-  HIGH: "Alta",
-  CRITICAL: "Crítica",
 };
 
 function formatTime(value: string) {
@@ -46,12 +37,10 @@ export function toTicketRecord(ticket: ApiTicket): TicketRecord {
   return {
     id: ticket.code,
     cliente: organizationName,
-    area: ticket.area,
-    actividad: ticket.title,
+    proceso: ticket.title,
     abierto: openedAt,
     cierre: ticket.closedAt ? formatTime(ticket.closedAt) : "—",
     estado: statusLabels[ticket.status],
-    prioridad: priorityLabels[ticket.priority],
     responsable:
       ticket.assignedTo && typeof ticket.assignedTo === "object"
         ? ticket.assignedTo.name ?? "Sin asignar"
@@ -75,7 +64,7 @@ export async function listTickets(options: { status?: string; page?: number; lim
 }
 
 export async function listOrganizations() {
-  return apiRequest<{ organizations: Array<{ id: string; name: string }> }>("/tickets/organizations");
+  return apiRequest<{ organizations: Array<{ id: string; name: string; code?: string }> }>("/tickets/organizations");
 }
 
 export function getTicket(ticketId: string) {

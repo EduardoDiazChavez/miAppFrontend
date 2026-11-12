@@ -38,17 +38,18 @@ export function ClientPortalPage() {
   const openCount = clientTickets.filter((ticket) => ticket.estado !== "Cerrado").length;
 
   return (
-    <main className="min-h-screen bg-slate-100 px-4 py-8 sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-[#F3F6FB] px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
       <div className="mx-auto max-w-6xl">
-        <header className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+        <header className="mb-6 flex flex-col gap-5 border-b border-slate-300/80 pb-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm font-medium uppercase tracking-[0.2em] text-violet-600">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#002679]">
               Portal de cliente
             </p>
-            <h1 className="mt-2 text-3xl font-semibold text-slate-900">
+            <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[#002679] sm:text-3xl">
               Historial de tickets
             </h1>
-            <p className="mt-2 text-slate-600">
+            <div className="mt-3 h-0.5 w-12 rounded-full bg-[#EB7700]" aria-hidden="true" />
+            <p className="mt-3 text-sm text-slate-600 sm:text-base">
               Consulta el avance y responde al equipo desde cada ticket.
             </p>
           </div>
@@ -56,28 +57,29 @@ export function ClientPortalPage() {
         </header>
 
         <section className="mb-6 grid gap-4 sm:grid-cols-2">
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="rounded-2xl border border-slate-300/80 bg-white p-5 shadow-md shadow-slate-900/[0.04]">
             <p className="text-sm text-slate-500">Tickets registrados</p>
-            <p className="mt-2 text-3xl font-semibold text-slate-900">
+            <p className="mt-2 text-3xl font-semibold text-[#002679]">
               {loading ? "—" : clientTickets.length}
             </p>
           </div>
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div className="rounded-2xl border border-slate-300/80 bg-white p-5 shadow-md shadow-slate-900/[0.04]">
             <p className="text-sm text-slate-500">Tickets en seguimiento</p>
-            <p className="mt-2 text-3xl font-semibold text-violet-700">
+            <p className="mt-2 text-3xl font-semibold text-[#002679]">
               {loading ? "—" : openCount}
             </p>
           </div>
         </section>
 
-        <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-7">
+        <section className="rounded-2xl border border-slate-300/80 bg-white p-5 shadow-md shadow-slate-900/[0.04] sm:p-7">
           <div className="mb-5">
-            <p className="text-sm font-medium text-violet-600">Tu organización</p>
-            <h2 className="mt-1 text-xl font-semibold text-slate-900">Tus solicitudes</h2>
+            <p className="text-sm font-medium text-[#002679]">Tu organización</p>
+            <h2 className="mt-1 text-xl font-semibold text-[#002679]">Tus solicitudes</h2>
+            <div className="mt-3 h-0.5 w-10 rounded-full bg-[#EB7700]" aria-hidden="true" />
           </div>
 
           {loading ? (
-            <p className="rounded-2xl bg-slate-50 p-6 text-sm text-slate-600" role="status">
+            <p className="rounded-xl border border-slate-200 bg-[#F7F9FC] p-6 text-sm text-slate-600" role="status">
               Cargando tus tickets...
             </p>
           ) : error ? (
@@ -100,21 +102,21 @@ export function ClientPortalPage() {
               {clientTickets.map((ticket) => (
                 <article
                   key={ticket.id}
-                  className="flex flex-col gap-4 rounded-2xl border border-slate-100 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between"
+                  className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-[#F7F9FC] p-4 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-3">
                       <h3 className="font-semibold text-slate-900">{ticket.id}</h3>
                       <StatusBadge status={ticket.estado} />
                     </div>
-                    <p className="mt-2 font-medium text-slate-700">{ticket.actividad}</p>
+                    <p className="mt-2 font-medium text-slate-700">{ticket.proceso}</p>
                     <p className="mt-1 text-sm text-slate-500">
-                      {ticket.area} · Apertura {ticket.horaApertura}
+                      Apertura {ticket.horaApertura}
                     </p>
                   </div>
                   <Link
                     href={`/tickets/detail?id=${encodeURIComponent(ticket.id)}`}
-                    className="shrink-0 rounded-xl bg-violet-600 px-4 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-violet-500"
+                    className="shrink-0 rounded-xl bg-[#002679] px-4 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-[#001d5c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#002679] focus-visible:ring-offset-2"
                   >
                     Ver historial y responder
                   </Link>

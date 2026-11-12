@@ -4,14 +4,22 @@ import Link from "next/link";
 import { type FormEvent, useCallback, useEffect, useState } from "react";
 import { ApiError, apiRequest } from "@/src/features/auth/lib/api-client";
 import { SessionGuard } from "@/src/features/auth/components/SessionGuard";
+import { SessionBar } from "@/src/features/auth/components/SessionBar";
 
-type Organization = { id: string; name: string };
+type Organization = {
+  id: string;
+  name: string;
+  code: string;
+  active: boolean;
+  archived: boolean;
+};
 type Invitation = { email: string; organization: string; url: string; expiresAt: string };
 type InternalRole = "OPERATOR" | "SUPERVISOR";
 
 function AdminUsersContent() {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [organizationName, setOrganizationName] = useState("");
+  const [organizationCode, setOrganizationCode] = useState("");
   const [clientName, setClientName] = useState("");
   const [clientEmail, setClientEmail] = useState("");
   const [selectedOrganization, setSelectedOrganization] = useState("");
@@ -26,8 +34,15 @@ function AdminUsersContent() {
   const loadOrganizations = useCallback(async () => {
     try {
       const result = await apiRequest<{ organizations: Organization[] }>("/admin/organizations");
-      setOrganizations(result.organizations);
-      setSelectedOrganization((current) => current || result.organizations[0]?.id || "");
+      const activeOrganizations = result.organizations.filter(
+        (organization) => organization.active && !organization.archived,
+      );
+      setOrganizations(activeOrganizations);
+      setSelectedOrganization((current) =>
+        activeOrganizations.some((organization) => organization.id === current)
+          ? current
+          : activeOrganizations[0]?.id || "",
+      );
     } catch (loadError) {
       setError(loadError instanceof ApiError ? loadError.message : "No se pudieron cargar las organizaciones.");
     }
@@ -46,9 +61,13 @@ function AdminUsersContent() {
     try {
       await apiRequest("/admin/organizations", {
         method: "POST",
-        body: JSON.stringify({ name: organizationName }),
+        body: JSON.stringify({
+          name: organizationName,
+          code: organizationCode.trim().toUpperCase(),
+        }),
       });
       setOrganizationName("");
+      setOrganizationCode("");
       setNotice("Organización creada correctamente.");
       await loadOrganizations();
     } catch (createError) {
@@ -114,17 +133,19 @@ function AdminUsersContent() {
   };
 
   return (
-    <main className="min-h-screen bg-slate-100 px-4 py-8 sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-[#F3F6FB] px-4 py-8 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
         <header className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <Link href="/admin" className="text-sm font-medium text-violet-700 hover:text-violet-900">← Administración</Link>
-            <p className="mt-4 text-sm font-medium uppercase tracking-[0.2em] text-violet-600">Cuentas y acceso</p>
-            <h1 className="mt-2 text-3xl font-semibold text-slate-900">Organizaciones y usuarios</h1>
+            <Link href="/admin" className="text-sm font-medium text-[#002679] hover:text-[#001d5c]">← Clientes</Link>
+            <p className="mt-4 text-sm font-semibold uppercase tracking-[0.18em] text-[#002679]">Cuentas y acceso</p>
+            <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[#002679]">Crear cliente</h1>
+            <div className="mt-3 h-0.5 w-12 rounded-full bg-[#EB7700]" aria-hidden="true" />
             <p className="mt-2 max-w-2xl text-sm text-slate-600">
-              Invita a clientes a crear su contraseña y habilita al equipo con acceso de Google.
+              Registra el cliente con sus siglas para tickets y después invita a las personas que iniciarán sesión.
             </p>
           </div>
+          <SessionBar />
         </header>
 
         {(error || notice) && (
@@ -135,48 +156,65 @@ function AdminUsersContent() {
 
         <div className="grid gap-5 lg:grid-cols-2">
           <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-slate-900">Crear organización</h2>
-            <p className="mt-1 text-sm text-slate-500">Las organizaciones vinculan a sus usuarios y tickets.</p>
-            <form onSubmit={handleCreateOrganization} className="mt-5 flex flex-col gap-3 sm:flex-row">
-              <label className="sr-only" htmlFor="organization-name">Nombre de organización</label>
-              <input
-                id="organization-name"
-                required
-                minLength={2}
-                maxLength={120}
-                value={organizationName}
-                onChange={(event) => setOrganizationName(event.target.value)}
-                placeholder="Nombre de la empresa"
-                className="min-w-0 flex-1 rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-400 focus:ring-4 focus:ring-violet-100"
-              />
-              <button type="submit" disabled={loading} className="rounded-xl bg-violet-600 px-4 py-3 text-sm font-semibold text-white hover:bg-violet-500 disabled:opacity-60">
-                Crear
+            <h2 className="text-lg font-semibold text-[#002679]">Datos del cliente</h2>
+            <p className="mt-1 text-sm text-slate-500">Las siglas aparecerán al final del código de cada ticket.</p>
+            <form onSubmit={handleCreateOrganization} className="mt-5 space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-slate-700" htmlFor="organization-name">Nombre del cliente</label>
+                <input
+                  id="organization-name"
+                  required
+                  minLength={2}
+                  maxLength={120}
+                  value={organizationName}
+                  onChange={(event) => setOrganizationName(event.target.value)}
+                  placeholder="Nombre de la empresa"
+                  className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-[#002679] focus:ring-4 focus:ring-[#002679]/10"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-slate-700" htmlFor="organization-code">Siglas para tickets</label>
+                <input
+                  id="organization-code"
+                  required
+                  minLength={2}
+                  maxLength={8}
+                  pattern="[A-Za-z0-9]{2,8}"
+                  value={organizationCode}
+                  onChange={(event) => setOrganizationCode(event.target.value.toUpperCase())}
+                  placeholder="Ej. ACME"
+                  className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm uppercase outline-none focus:border-[#002679] focus:ring-4 focus:ring-[#002679]/10"
+                />
+                <p className="text-xs text-slate-500">De 2 a 8 letras o números; deben ser únicas.</p>
+              </div>
+              <button type="submit" disabled={loading} className="rounded-xl bg-[#002679] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#001d5c] disabled:opacity-60">
+                Crear cliente
               </button>
             </form>
             <ul className="mt-5 space-y-2">
               {organizations.map((organization) => (
                 <li key={organization.id} className="rounded-xl bg-slate-50 px-4 py-3 text-sm font-medium text-slate-700">
-                  {organization.name}
+                  {organization.name} <span className="ml-1 text-xs font-semibold tracking-wide text-[#002679]">{organization.code || "Sin siglas"}</span>
                 </li>
               ))}
-              {organizations.length === 0 && <li className="text-sm text-slate-500">No hay organizaciones registradas.</li>}
+              {organizations.length === 0 && <li className="text-sm text-slate-500">No hay clientes activos disponibles.</li>}
             </ul>
           </section>
 
           <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-slate-900">Invitar cliente</h2>
-            <p className="mt-1 text-sm text-slate-500">La invitación dura 72 horas y se usa una sola vez.</p>
+            <h2 className="text-lg font-semibold text-[#002679]">Invitar acceso de cliente</h2>
+            <p className="mt-1 text-sm text-slate-500">El cliente define su contraseña desde la invitación, válida por 72 horas.</p>
             <form onSubmit={handleInviteClient} className="mt-5 space-y-3">
               <label className="sr-only" htmlFor="client-name">Nombre del cliente</label>
-              <input id="client-name" required minLength={2} maxLength={120} value={clientName} onChange={(event) => setClientName(event.target.value)} placeholder="Nombre de la persona" className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-400 focus:ring-4 focus:ring-violet-100" />
+              <input id="client-name" required minLength={2} maxLength={120} value={clientName} onChange={(event) => setClientName(event.target.value)} placeholder="Nombre de la persona" className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-[#002679] focus:ring-4 focus:ring-[#002679]/10" />
               <label className="sr-only" htmlFor="client-email">Correo del cliente</label>
-              <input id="client-email" required type="email" maxLength={254} value={clientEmail} onChange={(event) => setClientEmail(event.target.value)} placeholder="correo@empresa.com" className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-400 focus:ring-4 focus:ring-violet-100" />
+              <input id="client-email" required type="email" maxLength={254} value={clientEmail} onChange={(event) => setClientEmail(event.target.value)} placeholder="correo@empresa.com" className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-[#002679] focus:ring-4 focus:ring-[#002679]/10" />
               <label className="sr-only" htmlFor="client-organization">Organización del cliente</label>
-              <select id="client-organization" required value={selectedOrganization} onChange={(event) => setSelectedOrganization(event.target.value)} className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-violet-400 focus:ring-4 focus:ring-violet-100">
-                <option value="">Selecciona organización</option>
+              <select id="client-organization" required value={selectedOrganization} onChange={(event) => setSelectedOrganization(event.target.value)} className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-[#002679] focus:ring-4 focus:ring-[#002679]/10">
+                <option value="">Selecciona cliente</option>
                 {organizations.map((organization) => <option key={organization.id} value={organization.id}>{organization.name}</option>)}
               </select>
-              <button type="submit" disabled={loading || organizations.length === 0 || !selectedOrganization} className="w-full rounded-xl bg-slate-950 px-4 py-3 text-sm font-semibold text-white hover:bg-violet-700 disabled:opacity-50">
+              <button type="submit" disabled={loading || organizations.length === 0 || !selectedOrganization} className="w-full rounded-xl bg-[#002679] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#001d5c] disabled:opacity-50">
                 Generar invitación
               </button>
             </form>
@@ -197,15 +235,15 @@ function AdminUsersContent() {
             <p className="mt-1 text-sm text-slate-500">El correo se autoriza aquí y el usuario inicia sesión con Google.</p>
             <form onSubmit={handleCreateInternalUser} className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_200px_auto]">
               <label className="sr-only" htmlFor="internal-name">Nombre del usuario</label>
-              <input id="internal-name" required minLength={2} maxLength={120} value={internalName} onChange={(event) => setInternalName(event.target.value)} placeholder="Nombre completo" className="rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-400 focus:ring-4 focus:ring-violet-100" />
+              <input id="internal-name" required minLength={2} maxLength={120} value={internalName} onChange={(event) => setInternalName(event.target.value)} placeholder="Nombre completo" className="rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-[#002679] focus:ring-4 focus:ring-[#002679]/10" />
               <label className="sr-only" htmlFor="internal-email">Correo corporativo</label>
-              <input id="internal-email" required type="email" maxLength={254} value={internalEmail} onChange={(event) => setInternalEmail(event.target.value)} placeholder="correo@empresa.com" className="rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-400 focus:ring-4 focus:ring-violet-100" />
+              <input id="internal-email" required type="email" maxLength={254} value={internalEmail} onChange={(event) => setInternalEmail(event.target.value)} placeholder="correo@empresa.com" className="rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-[#002679] focus:ring-4 focus:ring-[#002679]/10" />
               <label className="sr-only" htmlFor="internal-role">Rol interno</label>
-              <select id="internal-role" value={internalRole} onChange={(event) => setInternalRole(event.target.value as InternalRole)} className="rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-violet-400 focus:ring-4 focus:ring-violet-100">
+              <select id="internal-role" value={internalRole} onChange={(event) => setInternalRole(event.target.value as InternalRole)} className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-[#002679] focus:ring-4 focus:ring-[#002679]/10">
                 <option value="OPERATOR">Usuario operativo</option>
                 <option value="SUPERVISOR">Supervisor</option>
               </select>
-              <button type="submit" disabled={loading} className="rounded-xl bg-violet-600 px-4 py-3 text-sm font-semibold text-white hover:bg-violet-500 disabled:opacity-60">
+              <button type="submit" disabled={loading} className="rounded-xl bg-[#002679] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#001d5c] disabled:opacity-60">
                 Autorizar acceso
               </button>
             </form>

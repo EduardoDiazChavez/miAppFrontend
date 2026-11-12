@@ -1,18 +1,15 @@
 import type { UserRole } from "@/src/features/auth/types";
 
 export type TicketStatus = "Abierto" | "En revisión" | "Pendiente cierre" | "Cerrado";
-export type TicketPriority = "Baja" | "Media" | "Alta" | "Crítica";
 export type { UserRole } from "@/src/features/auth/types";
 
 export type TicketRecord = {
   id: string;
   cliente: string;
-  area: string;
-  actividad: string;
+  proceso: string;
   abierto: string;
   cierre: string;
   estado: TicketStatus;
-  prioridad: TicketPriority;
   responsable: string;
   descripcion: string;
   horaApertura: string;
@@ -32,12 +29,10 @@ export const tickets: TicketRecord[] = [
   {
     id: "TK-1048",
     cliente: "Banco Norte",
-    area: "Soporte técnico",
-    actividad: "Revisión de incidentes en correo corporativo",
+    proceso: "Revisión de incidentes en correo corporativo",
     abierto: "08:30",
     cierre: "10:15",
     estado: "Pendiente cierre",
-    prioridad: "Alta",
     responsable: "Ana Ureña",
     descripcion:
       "Se reportó un incidente de acceso y sincronización del buzón corporativo. Se verificó el problema y se inició la revisión del servicio con seguimiento del usuario.",
@@ -47,12 +42,10 @@ export const tickets: TicketRecord[] = [
   {
     id: "TK-1049",
     cliente: "Alegra Logística",
-    area: "Infraestructura",
-    actividad: "Ajuste de acceso y sincronización de usuarios",
+    proceso: "Ajuste de acceso y sincronización de usuarios",
     abierto: "09:05",
     cierre: "11:40",
     estado: "En revisión",
-    prioridad: "Media",
     responsable: "Marcelo Ruiz",
     descripcion:
       "Se revisó la configuración del acceso para varios usuarios. Se necesita validar el cambio final y confirmar la sincronización de permisos.",
@@ -62,12 +55,10 @@ export const tickets: TicketRecord[] = [
   {
     id: "TK-1052",
     cliente: "Mundial Textiles",
-    area: "Operaciones",
-    actividad: "Validación de reportes de horas de atención",
+    proceso: "Validación de reportes de horas de atención",
     abierto: "10:50",
     cierre: "12:15",
     estado: "Abierto",
-    prioridad: "Baja",
     responsable: "Laura Gómez",
     descripcion:
       "Se validó la información de horas y se requiere confirmar la conciliación de registros de atención del personal asignado.",
@@ -77,12 +68,10 @@ export const tickets: TicketRecord[] = [
   {
     id: "TK-1055",
     cliente: "Grupo Solis",
-    area: "Atención al cliente",
-    actividad: "Seguimiento final de correo con cierre de servicio",
+    proceso: "Seguimiento final de correo con cierre de servicio",
     abierto: "07:40",
     cierre: "09:10",
     estado: "Cerrado",
-    prioridad: "Media",
     responsable: "Sofía Díaz",
     descripcion:
       "Se cerró el servicio con la confirmación del cliente y el registro final de la solución entregada.",

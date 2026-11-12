@@ -13,6 +13,7 @@ export class ApiError extends Error {
   constructor(
     message: string,
     readonly status: number,
+    readonly details?: unknown,
   ) {
     super(message);
     this.name = "ApiError";
@@ -46,7 +47,9 @@ export async function apiRequest<T>(
       body && typeof body === "object" && "error" in body && typeof body.error === "string"
         ? body.error
         : "La solicitud no pudo completarse.";
-    throw new ApiError(message, response.status);
+    const details =
+      body && typeof body === "object" && "details" in body ? body.details : undefined;
+    throw new ApiError(message, response.status, details);
   }
 
   if (response.status === 204) {

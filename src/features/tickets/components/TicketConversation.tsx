@@ -80,23 +80,23 @@ export function TicketConversation({ ticketId }: TicketConversationProps) {
   };
 
   return (
-    <section className="mt-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+    <section className="mt-6 rounded-2xl border border-slate-300/80 bg-white p-5 shadow-md shadow-slate-900/[0.04] sm:p-6">
       <div className="mb-5 flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-violet-100 text-violet-700">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#E8EEF8] text-[#002679]">
           <MessageCircle size={19} aria-hidden="true" />
         </div>
         <div>
-          <h2 className="font-semibold text-slate-900">Historial y conversación</h2>
+          <h2 className="font-semibold text-[#002679]">Historial y conversación</h2>
           <p className="text-sm text-slate-500">Las actualizaciones de este ticket aparecen aquí.</p>
         </div>
       </div>
 
       {loading ? (
-        <p className="rounded-xl bg-slate-50 p-4 text-sm text-slate-500" role="status">
+        <p className="rounded-xl border border-slate-200 bg-[#F7F9FC] p-4 text-sm text-slate-500" role="status">
           Cargando historial...
         </p>
       ) : messages.length === 0 ? (
-        <p className="rounded-xl bg-slate-50 p-4 text-sm text-slate-500">
+        <p className="rounded-xl border border-slate-200 bg-[#F7F9FC] p-4 text-sm text-slate-500">
           Aún no hay mensajes en este ticket.
         </p>
       ) : (
@@ -105,7 +105,7 @@ export function TicketConversation({ ticketId }: TicketConversationProps) {
             <li key={item.id} className="flex gap-3">
               <span
                 className={`mt-1 h-2.5 w-2.5 shrink-0 rounded-full ${
-                  item.role === "Cliente" ? "bg-sky-500" : "bg-violet-500"
+                  item.role === "Cliente" ? "bg-[#EB7700]" : "bg-[#002679]"
                 }`}
                 aria-hidden="true"
               />
@@ -133,7 +133,7 @@ export function TicketConversation({ ticketId }: TicketConversationProps) {
       )}
 
       <form onSubmit={handleSubmit} className="mt-6 space-y-3 border-t border-slate-100 pt-5">
-        <label htmlFor="ticket-message" className="text-sm font-medium text-slate-700">
+        <label htmlFor="ticket-message" className="text-sm font-semibold text-slate-800">
           {session?.role === "Cliente" ? "Responder al equipo" : "Agregar actualización"}
         </label>
         <textarea
@@ -144,13 +144,13 @@ export function TicketConversation({ ticketId }: TicketConversationProps) {
           maxLength={2000}
           disabled={loading || Boolean(error && !messages.length)}
           placeholder="Escribe una actualización o respuesta..."
-          className="w-full resize-y rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-violet-400 focus:bg-white focus:ring-4 focus:ring-violet-100 disabled:cursor-not-allowed disabled:opacity-60"
+          className="w-full resize-y rounded-xl border border-slate-300 bg-[#F7F9FC] px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-[#002679] focus:bg-white focus:ring-4 focus:ring-[#002679]/10 disabled:cursor-not-allowed disabled:opacity-60"
         />
         <div className="flex justify-end">
           <button
             type="submit"
             disabled={!message.trim() || sending || loading}
-            className="inline-flex items-center gap-2 rounded-xl bg-violet-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#002679] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#001d5c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#002679] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <Send size={15} aria-hidden="true" />
             {sending ? "Enviando..." : "Enviar mensaje"}

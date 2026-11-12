@@ -101,8 +101,7 @@ export function TicketTable() {
             <tr className="border-b border-slate-200 bg-[#F3F6FA] text-xs uppercase tracking-wide text-slate-600">
               <th scope="col" className="px-3 py-3 font-semibold first:rounded-l-lg">Ticket</th>
               <th scope="col" className="px-3 py-3 font-semibold">Cliente</th>
-              <th scope="col" className="px-3 py-3 font-semibold">Área</th>
-              <th scope="col" className="px-3 py-3 font-semibold">Actividad</th>
+              <th scope="col" className="px-3 py-3 font-semibold">Proceso</th>
               <th scope="col" className="px-3 py-3 font-semibold">Abierto</th>
               <th scope="col" className="px-3 py-3 font-semibold">Cierre</th>
               <th scope="col" className="px-3 py-3 font-semibold last:rounded-r-lg">Estado</th>
@@ -110,10 +109,10 @@ export function TicketTable() {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={7} className="py-10 text-center text-sm text-slate-500">Cargando tickets...</td></tr>
+              <tr><td colSpan={6} className="py-10 text-center text-sm text-slate-500">Cargando tickets...</td></tr>
             ) : error ? (
               <tr>
-                <td colSpan={7} className="py-8 text-center">
+                <td colSpan={6} className="py-8 text-center">
                   <p className="text-sm text-red-700" role="alert">{error}</p>
                   <button type="button" onClick={() => void loadTickets()} className="mt-2 text-sm font-semibold text-[#002679] hover:underline">
                     Reintentar
@@ -121,13 +120,12 @@ export function TicketTable() {
                 </td>
               </tr>
             ) : tickets.length === 0 ? (
-              <tr><td colSpan={7} className="py-10 text-center text-sm text-slate-500">No hay tickets para este filtro.</td></tr>
+              <tr><td colSpan={6} className="py-10 text-center text-sm text-slate-500">No hay tickets para este filtro.</td></tr>
             ) : tickets.map((ticket) => (
               <tr key={ticket.id} className="border-b border-slate-200/80 align-top text-sm text-slate-700 transition-colors hover:bg-[#F3F6FB]">
                 <td className="px-3 py-4 font-semibold text-[#002679]">{ticket.id}</td>
                 <td className="px-3 py-4 font-medium text-slate-800">{ticket.cliente}</td>
-                <td className="px-3 py-4">{ticket.area}</td>
-                <td className="min-w-52 px-3 py-4 text-slate-600">{ticket.actividad}</td>
+                <td className="min-w-52 px-3 py-4 text-slate-600">{ticket.proceso}</td>
                 <td className="whitespace-nowrap px-3 py-4">{ticket.abierto}</td>
                 <td className="whitespace-nowrap px-3 py-4">{ticket.cierre}</td>
                 <td className="whitespace-nowrap px-3 py-4">

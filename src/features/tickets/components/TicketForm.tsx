@@ -3,31 +3,78 @@
 import { useRouter } from "next/navigation";
 import { type FormEvent, useEffect, useState } from "react";
 import { ApiError, apiRequest } from "@/src/features/auth/lib/api-client";
+import { useSession } from "@/src/features/auth/hooks/useSession";
 import { Button } from "@/src/components/ui/button";
 import { Card, CardContent } from "@/src/components/ui/card";
 import { listOrganizations } from "../lib/ticket-api";
 
-type OrganizationOption = { id: string; name: string };
-type Priority = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+type OrganizationOption = { id: string; name: string; code?: string };
 
-const priorities: Array<{ value: Priority; label: string }> = [
-  { value: "LOW", label: "Baja" },
-  { value: "MEDIUM", label: "Media" },
-  { value: "HIGH", label: "Alta" },
-  { value: "CRITICAL", label: "Crítica" },
-];
+function getTicketErrorMessage(error: unknown) {
+  if (!(error instanceof ApiError)) return "No se pudo abrir el ticket.";
+
+  if (Array.isArray(error.details)) {
+    const messagesByField: Record<string, string> = {
+      organizationId: "Selecciona un cliente válido.",
+      process: "El proceso debe tener entre 3 y 160 caracteres.",
+      description: "La descripción debe tener entre 5 y 5000 caracteres.",
+    };
+    const messages = error.details.flatMap((issue) => {
+      if (!issue || typeof issue !== "object" || !("path" in issue) || !Array.isArray(issue.path)) {
+        return [];
+      }
+      const field = issue.path[0];
+      return typeof field === "string" && messagesByField[field]
+        ? [messagesByField[field]]
+        : [];
+    });
+    if (messages.length > 0) return [...new Set(messages)].join(" ");
+  }
+
+  return error.message;
+}
+
+function getInitials(name: string) {
+  return name
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .split(/[^a-zA-Z0-9]+/)
+    .filter(Boolean)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
+}
+
+function getTicketCode(userName: string, organizationCode: string, date: Date) {
+  const day = String(date.getUTCDate()).padStart(2, "0");
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const year = date.getUTCFullYear();
+  return `TK${getInitials(userName)}-${day}${month}${year}-${organizationCode}`;
+}
 
 export function TicketForm() {
   const router = useRouter();
+  const { session, loading: loadingSession } = useSession();
   const [organizations, setOrganizations] = useState<OrganizationOption[]>([]);
   const [organizationId, setOrganizationId] = useState("");
-  const [title, setTitle] = useState("");
-  const [area, setArea] = useState("");
+  const [process, setProcess] = useState("");
   const [description, setDescription] = useState("");
-  const [priority, setPriority] = useState<Priority>("MEDIUM");
   const [loadingOrganizations, setLoadingOrganizations] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const selectedOrganization = organizations.find(
+    (organization) => organization.id === organizationId,
+  );
+  const previewCode =
+    session && selectedOrganization
+      ? getTicketCode(
+          session.name,
+          selectedOrganization.code || getInitials(selectedOrganization.name),
+          new Date(),
+        )
+      : loadingSession
+        ? "Cargando usuario..."
+        : "Selecciona un cliente";
 
   useEffect(() => {
     let active = true;
@@ -61,19 +108,31 @@ export function TicketForm() {
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError("");
+
+    const trimmedProcess = process.trim();
+    const trimmedDescription = description.trim();
+    if (trimmedProcess.length < 3) {
+      setError("El proceso debe tener al menos 3 caracteres.");
+      return;
+    }
+    if (trimmedDescription.length < 5) {
+      setError("La descripción debe tener al menos 5 caracteres.");
+      return;
+    }
+
     setLoading(true);
     try {
-      await apiRequest("/tickets", {
+      const result = await apiRequest<{ ticket: { code: string } }>("/tickets", {
         method: "POST",
-        body: JSON.stringify({ organizationId, title, area, description, priority }),
+        body: JSON.stringify({
+          organizationId,
+          process: trimmedProcess,
+          description: trimmedDescription,
+        }),
       });
-      router.push("/dashboard");
+      router.push(`/tickets/detail?id=${encodeURIComponent(result.ticket.code)}`);
     } catch (submitError) {
-      setError(
-        submitError instanceof ApiError
-          ? submitError.message
-          : "No se pudo crear el ticket.",
-      );
+      setError(getTicketErrorMessage(submitError));
     } finally {
       setLoading(false);
     }
@@ -88,7 +147,7 @@ export function TicketForm() {
               Nuevo ticket
             </p>
             <h2 className="mt-4 text-2xl font-semibold text-[#002679] sm:text-3xl">
-              Registrar trabajo
+              Abrir un ticket
             </h2>
             <p className="mt-2 text-sm text-slate-500 sm:text-base">
               El ticket se guardará y quedará disponible para el cliente en su historial.
@@ -128,34 +187,18 @@ export function TicketForm() {
               )}
             </div>
 
-            <div className="space-y-2">
-              <label htmlFor="ticket-area" className="text-sm font-semibold text-slate-800">
-                Área de atención
-              </label>
-              <input
-                id="ticket-area"
-                value={area}
-                onChange={(event) => setArea(event.target.value)}
-                required
-                minLength={2}
-                maxLength={100}
-                placeholder="Ej. Soporte técnico"
-                className="w-full rounded-xl border border-slate-300 bg-[#F7F9FC] px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-[#002679] focus:bg-white focus:ring-4 focus:ring-[#002679]/10"
-              />
-            </div>
-
             <div className="space-y-2 md:col-span-2">
-              <label htmlFor="ticket-title" className="text-sm font-semibold text-slate-800">
-                Actividad o asunto
+              <label htmlFor="ticket-process" className="text-sm font-semibold text-slate-800">
+                Proceso
               </label>
               <input
-                id="ticket-title"
-                value={title}
-                onChange={(event) => setTitle(event.target.value)}
+                id="ticket-process"
+                value={process}
+                onChange={(event) => setProcess(event.target.value)}
                 required
                 minLength={3}
                 maxLength={160}
-                placeholder="Resume el trabajo o solicitud"
+                placeholder="Describe brevemente el proceso"
                 className="w-full rounded-xl border border-slate-300 bg-[#F7F9FC] px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-[#002679] focus:bg-white focus:ring-4 focus:ring-[#002679]/10"
               />
             </div>
@@ -178,32 +221,44 @@ export function TicketForm() {
               <p className="text-right text-xs text-slate-400">{description.length}/5000</p>
             </div>
 
-            <fieldset className="space-y-2 md:col-span-2">
-              <legend className="text-sm font-semibold text-slate-800">Prioridad</legend>
-              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-                {priorities.map((option) => (
-                  <label
-                    key={option.value}
-                    className={`cursor-pointer rounded-xl border px-3 py-2.5 text-center text-sm font-medium transition focus-within:ring-2 focus-within:ring-[#002679] ${
-                      priority === option.value
-                        ? "border-[#002679] bg-[#002679] text-white ring-2 ring-[#002679]/15"
-                        : "border-slate-300 bg-white text-slate-700 hover:border-slate-400 hover:bg-[#F3F6FA]"
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="priority"
-                      value={option.value}
-                      checked={priority === option.value}
-                      onChange={() => setPriority(option.value)}
-                      className="sr-only"
-                    />
-                    {option.label}
-                  </label>
-                ))}
-              </div>
-            </fieldset>
           </div>
+
+          <section
+            aria-label="Previsualización del ticket"
+            className="rounded-2xl border border-[#002679]/15 bg-[#F3F6FB] p-4 sm:p-5"
+          >
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Previsualización del ticket
+                </p>
+                <p className="mt-1 text-lg font-bold text-[#002679]">{previewCode}</p>
+              </div>
+              <span className="rounded-full bg-white px-3 py-1 text-xs font-semibold text-slate-600">
+                Se abrirá al confirmar
+              </span>
+            </div>
+            <dl className="mt-4 grid gap-3 border-t border-slate-200 pt-4 sm:grid-cols-2">
+              <div>
+                <dt className="text-xs font-medium text-slate-500">Cliente</dt>
+                <dd className="mt-1 text-sm font-semibold text-slate-800">
+                  {selectedOrganization?.name ?? "—"}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-xs font-medium text-slate-500">Proceso</dt>
+                <dd className="mt-1 text-sm font-semibold text-slate-800">
+                  {process.trim() || "—"}
+                </dd>
+              </div>
+              <div className="sm:col-span-2">
+                <dt className="text-xs font-medium text-slate-500">Descripción</dt>
+                <dd className="mt-1 whitespace-pre-wrap text-sm text-slate-700">
+                  {description.trim() || "—"}
+                </dd>
+              </div>
+            </dl>
+          </section>
 
           <div className="flex flex-col-reverse gap-3 border-t border-slate-200 pt-5 sm:flex-row sm:justify-end">
             <Button type="button" variant="outline" onClick={() => router.push("/dashboard")} className="focus-visible:ring-[#002679]">
@@ -211,10 +266,16 @@ export function TicketForm() {
             </Button>
             <Button
               type="submit"
-              disabled={loading || loadingOrganizations || organizations.length === 0}
+              disabled={
+                loading ||
+                loadingSession ||
+                !session ||
+                loadingOrganizations ||
+                organizations.length === 0
+              }
               className="bg-[#002679] text-white shadow-sm hover:bg-[#001d5c] focus-visible:ring-[#002679]"
             >
-              {loading ? "Guardando ticket..." : "Crear ticket"}
+              {loading ? "Abriendo ticket..." : "Abrir ticket"}
             </Button>
           </div>
         </form>
