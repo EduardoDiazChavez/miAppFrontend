@@ -56,15 +56,16 @@ export function TicketTable() {
   };
 
   return (
-    <section className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+    <section className="rounded-2xl border border-slate-300/80 bg-white p-4 shadow-md shadow-slate-900/[0.04] sm:p-6">
       <div className="mb-6 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
         <div>
-          <p className="text-sm font-medium text-violet-600">Operación</p>
-          <h3 className="text-xl font-semibold text-slate-900">Tickets registrados</h3>
+          <p className="text-sm font-medium text-[#002679]">Operación</p>
+          <h3 className="mt-1 text-xl font-semibold text-[#002679]">Tickets registrados</h3>
+          <div className="mt-3 h-0.5 w-10 rounded-full bg-[#EB7700]" aria-hidden="true" />
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between xl:justify-end">
-          <div className="flex flex-wrap gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-1.5">
+          <div role="group" aria-label="Filtrar tickets por estado" className="flex flex-wrap gap-1 rounded-xl border border-slate-200 bg-[#F3F6FA] p-1">
             {filters.map((filter) => {
               const isActive = statusFilter === filter;
 
@@ -73,10 +74,11 @@ export function TicketTable() {
                   key={filter}
                   type="button"
                   onClick={() => handleFilter(filter)}
-                  className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-medium transition ${
+                  aria-pressed={isActive}
+                  className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#002679] focus-visible:ring-offset-1 ${
                     isActive
-                      ? "bg-violet-600 text-white shadow-sm"
-                      : "text-slate-600 hover:bg-white hover:text-slate-900"
+                      ? "bg-[#002679] text-white shadow-sm"
+                      : "text-slate-600 hover:bg-slate-50 hover:text-[#002679]"
                   }`}
                 >
                   <span>{filter}</span>
@@ -85,9 +87,9 @@ export function TicketTable() {
             })}
           </div>
 
-          <div className="text-sm text-slate-500">
+          <div className="rounded-lg bg-[#F3F6FA] px-3 py-2 text-sm text-slate-600" aria-live="polite">
             {loading ? "Cargando tickets..." : (
-              <>Mostrando <span className="font-semibold text-slate-800">{tickets.length}</span> de {total} tickets</>
+              <>Mostrando <span className="font-semibold text-[#002679]">{tickets.length}</span> de {total} tickets</>
             )}
           </div>
         </div>
@@ -96,14 +98,14 @@ export function TicketTable() {
       <div className="overflow-x-auto">
         <table className="min-w-full text-left">
           <thead>
-            <tr className="border-b border-slate-200 text-sm text-slate-500">
-              <th className="pb-3 pr-4 font-medium">Ticket</th>
-              <th className="pb-3 pr-4 font-medium">Cliente</th>
-              <th className="pb-3 pr-4 font-medium">Área</th>
-              <th className="pb-3 pr-4 font-medium">Actividad</th>
-              <th className="pb-3 pr-4 font-medium">Abierto</th>
-              <th className="pb-3 pr-4 font-medium">Cierre</th>
-              <th className="pb-3 font-medium">Estado</th>
+            <tr className="border-b border-slate-200 bg-[#F3F6FA] text-xs uppercase tracking-wide text-slate-600">
+              <th scope="col" className="px-3 py-3 font-semibold first:rounded-l-lg">Ticket</th>
+              <th scope="col" className="px-3 py-3 font-semibold">Cliente</th>
+              <th scope="col" className="px-3 py-3 font-semibold">Área</th>
+              <th scope="col" className="px-3 py-3 font-semibold">Actividad</th>
+              <th scope="col" className="px-3 py-3 font-semibold">Abierto</th>
+              <th scope="col" className="px-3 py-3 font-semibold">Cierre</th>
+              <th scope="col" className="px-3 py-3 font-semibold last:rounded-r-lg">Estado</th>
             </tr>
           </thead>
           <tbody>
@@ -113,7 +115,7 @@ export function TicketTable() {
               <tr>
                 <td colSpan={7} className="py-8 text-center">
                   <p className="text-sm text-red-700" role="alert">{error}</p>
-                  <button type="button" onClick={() => void loadTickets()} className="mt-2 text-sm font-semibold text-violet-700 hover:text-violet-900">
+                  <button type="button" onClick={() => void loadTickets()} className="mt-2 text-sm font-semibold text-[#002679] hover:underline">
                     Reintentar
                   </button>
                 </td>
@@ -121,19 +123,19 @@ export function TicketTable() {
             ) : tickets.length === 0 ? (
               <tr><td colSpan={7} className="py-10 text-center text-sm text-slate-500">No hay tickets para este filtro.</td></tr>
             ) : tickets.map((ticket) => (
-              <tr key={ticket.id} className="border-b border-slate-100 align-top text-sm text-slate-700">
-                <td className="py-4 pr-4 font-semibold text-slate-900">{ticket.id}</td>
-                <td className="py-4 pr-4">{ticket.cliente}</td>
-                <td className="py-4 pr-4">{ticket.area}</td>
-                <td className="py-4 pr-4 text-slate-600">{ticket.actividad}</td>
-                <td className="py-4 pr-4">{ticket.abierto}</td>
-                <td className="py-4 pr-4">{ticket.cierre}</td>
-                <td className="py-4">
+              <tr key={ticket.id} className="border-b border-slate-200/80 align-top text-sm text-slate-700 transition-colors hover:bg-[#F3F6FB]">
+                <td className="px-3 py-4 font-semibold text-[#002679]">{ticket.id}</td>
+                <td className="px-3 py-4 font-medium text-slate-800">{ticket.cliente}</td>
+                <td className="px-3 py-4">{ticket.area}</td>
+                <td className="min-w-52 px-3 py-4 text-slate-600">{ticket.actividad}</td>
+                <td className="whitespace-nowrap px-3 py-4">{ticket.abierto}</td>
+                <td className="whitespace-nowrap px-3 py-4">{ticket.cierre}</td>
+                <td className="whitespace-nowrap px-3 py-4">
                   <div className="flex items-center gap-2">
                     <StatusBadge status={ticket.estado} />
                     <Link
                       href={`/tickets/detail?id=${encodeURIComponent(ticket.id)}`}
-                      className="text-xs font-medium text-violet-600 transition hover:text-violet-700"
+                      className="text-xs font-medium text-[#002679] underline-offset-4 transition hover:underline"
                     >
                       Ver detalle
                     </Link>
@@ -144,13 +146,13 @@ export function TicketTable() {
           </tbody>
         </table>
       </div>
-      <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-4">
+      <div className="mt-4 flex items-center justify-between border-t border-slate-200 pt-4">
         <p className="text-xs text-slate-500">Página {page} de {Math.max(1, Math.ceil(total / 20))}</p>
         <div className="flex gap-2">
-          <button type="button" disabled={page <= 1 || loading} onClick={() => setPage((current) => current - 1)} className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 disabled:opacity-40">
+          <button type="button" disabled={page <= 1 || loading} onClick={() => setPage((current) => current - 1)} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-[#002679] transition hover:bg-[#F3F6FA] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#002679] disabled:opacity-40">
             Anterior
           </button>
-          <button type="button" disabled={page * 20 >= total || loading} onClick={() => setPage((current) => current + 1)} className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-semibold text-slate-600 disabled:opacity-40">
+          <button type="button" disabled={page * 20 >= total || loading} onClick={() => setPage((current) => current + 1)} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-[#002679] transition hover:bg-[#F3F6FA] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#002679] disabled:opacity-40">
             Siguiente
           </button>
         </div>

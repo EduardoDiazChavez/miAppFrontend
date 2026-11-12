@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { ChevronDown, LogOut } from "lucide-react";
 import { apiRequest, notifySessionChanged } from "../lib/api-client";
 import { useSession } from "../hooks/useSession";
 
@@ -33,22 +34,37 @@ export function SessionBar() {
   };
 
   return (
-    <div className="relative flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-3 py-2 shadow-sm">
-      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-violet-100 text-sm font-semibold text-violet-700">
-        {initials}
-      </div>
-      <div className="min-w-0">
-        <p className="truncate text-sm font-semibold text-slate-800">{session.name}</p>
-        <p className="text-xs text-slate-500">{session.role}</p>
-      </div>
-      <button
-        type="button"
-        onClick={handleSignOut}
-        className="ml-1 rounded-lg px-2 py-1 text-xs font-medium text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
+    <details className="group relative">
+      <summary
+        aria-label={`Menú de usuario: ${session.name}`}
+        className="flex cursor-pointer list-none items-center gap-3 rounded-xl border border-slate-300 bg-white py-2 pl-2 pr-3 shadow-sm transition hover:border-[#002679]/30 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#002679] focus-visible:ring-offset-2 [&::-webkit-details-marker]:hidden"
       >
-        Salir
-      </button>
-      {logoutError && <p className="absolute right-4 top-full mt-2 max-w-64 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700 shadow" role="alert">{logoutError}</p>}
-    </div>
+        <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#002679] text-sm font-semibold text-white">
+          {initials}
+        </span>
+        <span className="hidden min-w-0 text-left sm:block">
+          <span className="block max-w-36 truncate text-sm font-semibold text-[#002679]">{session.name}</span>
+          <span className="block text-xs text-slate-500">{session.role}</span>
+        </span>
+        <ChevronDown aria-hidden="true" className="h-4 w-4 text-slate-500 transition group-open:rotate-180" />
+      </summary>
+
+      <div className="absolute right-0 z-20 mt-2 w-72 rounded-xl border border-slate-200 bg-white p-2 shadow-lg shadow-slate-900/10">
+        <div className="border-b border-slate-100 px-3 py-3">
+          <p className="truncate text-sm font-semibold text-[#002679]">{session.name}</p>
+          <p className="mt-1 truncate text-xs text-slate-500">{session.email}</p>
+          <p className="mt-2 inline-flex rounded-full bg-[#E8EEF8] px-2.5 py-1 text-xs font-medium text-[#002679]">{session.role}</p>
+        </div>
+        <button
+          type="button"
+          onClick={handleSignOut}
+          className="mt-1 flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-50 hover:text-[#002679] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#002679]"
+        >
+          <LogOut aria-hidden="true" className="h-4 w-4" />
+          Cerrar sesión
+        </button>
+        {logoutError && <p className="px-3 pb-2 text-xs text-red-700" role="alert">{logoutError}</p>}
+      </div>
+    </details>
   );
 }
