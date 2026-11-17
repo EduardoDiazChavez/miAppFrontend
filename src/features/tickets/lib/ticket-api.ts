@@ -8,6 +8,7 @@ export type ApiTicket = {
   title: string;
   description: string;
   status: "OPEN" | "IN_PROGRESS" | "WAITING" | "CLOSED";
+  createdBy?: { name?: string } | string;
   assignedTo?: { name?: string } | string;
   createdAt: string;
   updatedAt: string;
@@ -19,6 +20,8 @@ export type OpenTicket = {
   title: string;
   status: "OPEN" | "IN_PROGRESS" | "WAITING";
 };
+
+export type TicketFilterUser = { id: string; name: string };
 
 const statusLabels: Record<ApiTicket["status"], TicketStatus> = {
   OPEN: "Abierto",
@@ -43,7 +46,16 @@ export function toTicketRecord(ticket: ApiTicket): TicketRecord {
   return {
     id: ticket.code,
     cliente: organizationName,
+    creador:
+      ticket.createdBy && typeof ticket.createdBy === "object"
+        ? ticket.createdBy.name ?? "—"
+        : "—",
     proceso: ticket.title,
+    fechaCreacion: new Date(ticket.createdAt).toLocaleDateString("es", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    }),
     abierto: openedAt,
     cierre: ticket.closedAt ? formatTime(ticket.closedAt) : "—",
     estado: statusLabels[ticket.status],
@@ -57,16 +69,36 @@ export function toTicketRecord(ticket: ApiTicket): TicketRecord {
   };
 }
 
-export async function listTickets(options: { status?: string; page?: number; limit?: number } = {}) {
+export async function listTickets(options: {
+  status?: string;
+  page?: number;
+  limit?: number;
+  userId?: string;
+  dateFrom?: string;
+  dateTo?: string;
+} = {}) {
   const params = new URLSearchParams();
   if (options.status) params.set("status", options.status);
   if (options.page) params.set("page", String(options.page));
   if (options.limit) params.set("limit", String(options.limit));
+  if (options.userId) params.set("userId", options.userId);
+  if (options.dateFrom) {
+    const [year, month, day] = options.dateFrom.split("-").map(Number);
+    params.set("dateFrom", new Date(year, month - 1, day).toISOString());
+  }
+  if (options.dateTo) {
+    const [year, month, day] = options.dateTo.split("-").map(Number);
+    params.set("dateTo", new Date(year, month - 1, day + 1).toISOString());
+  }
   const suffix = params.size > 0 ? `?${params.toString()}` : "";
   const result = await apiRequest<{ tickets: ApiTicket[]; page: number; limit: number; total: number }>(
     `/tickets${suffix}`,
   );
   return { ...result, tickets: result.tickets.map(toTicketRecord) };
+}
+
+export function getTicketFilterUsers() {
+  return apiRequest<{ users: TicketFilterUser[] }>("/tickets/filter-options");
 }
 
 export async function listOrganizations() {

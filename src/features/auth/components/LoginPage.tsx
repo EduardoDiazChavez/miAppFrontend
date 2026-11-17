@@ -1,9 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type FormEvent, useCallback, useState } from "react";
-import { ArrowLeft, Eye, EyeOff, LockKeyhole, Mail, ShieldCheck } from "lucide-react";
+import { Eye, EyeOff, LockKeyhole, Mail, ShieldCheck } from "lucide-react";
 import { ApiError, apiRequest, getHomeForRole, notifySessionChanged, toSessionUser, type ApiUser } from "../lib/api-client";
 import { GoogleLoginButton } from "./GoogleLoginButton";
 
@@ -53,25 +52,17 @@ export function LoginPage() {
       <div className="pointer-events-none absolute -left-36 top-12 h-80 w-80 rounded-full bg-violet-200/50 blur-3xl" />
       <div className="pointer-events-none absolute -right-36 bottom-0 h-96 w-96 rounded-full bg-sky-200/40 blur-3xl" />
       <div className="relative mx-auto flex min-h-[calc(100vh-3rem)] max-w-6xl flex-col">
-        <Link
-          href="/"
-          className="inline-flex w-fit items-center gap-2 rounded-full px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-white hover:text-slate-950"
-        >
-          <ArrowLeft size={16} aria-hidden="true" />
-          Volver al inicio
-        </Link>
-
         <div className="my-auto grid overflow-hidden rounded-[2rem] border border-white/80 bg-white/80 shadow-[0_32px_100px_rgba(27,34,65,0.12)] backdrop-blur-xl lg:grid-cols-[1fr_0.88fr]">
           <section className="relative flex min-h-[300px] flex-col justify-between overflow-hidden bg-[#15172a] p-8 text-white sm:p-12">
             <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-violet-500/40 blur-3xl" />
             <div className="absolute -bottom-28 left-10 h-72 w-72 rounded-full bg-sky-500/30 blur-3xl" />
             <div className="relative">
-              <Link href="/" className="inline-flex items-center gap-2 text-lg font-bold tracking-tight">
+              <div className="inline-flex items-center gap-2 text-lg font-bold tracking-tight">
                 <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-sm font-black text-violet-700">
                   m
                 </span>
                 miapp
-              </Link>
+              </div>
               <div className="mt-14 max-w-lg">
                 <p className="text-xs font-semibold uppercase tracking-[0.22em] text-violet-200">
                   Un acceso, una experiencia a tu medida

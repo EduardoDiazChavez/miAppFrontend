@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ApiError } from "@/src/features/auth/lib/api-client";
-import { listTickets } from "@/src/features/tickets/lib/ticket-api";
+import { getTicketFilterUsers, listTickets } from "@/src/features/tickets/lib/ticket-api";
 import type { TicketRecord, TicketStatus } from "../data/mockData";
+import { TicketFilters } from "@/src/features/tickets/components/TicketFilters";
+import { useSession } from "@/src/features/auth/hooks/useSession";
 import { StatusBadge } from "./StatusBadge";
 
 const filters: Array<"Todos" | TicketStatus> = ["Todos", "Abierto", "En revisión", "Pendiente cierre", "Cerrado"];
@@ -16,44 +18,104 @@ const statusApiValues: Partial<Record<TicketStatus, string>> = {
 };
 
 export function TicketTable() {
+  const { session } = useSession();
+  const canFilterAllUsers = session?.role === "Administrador";
   const [statusFilter, setStatusFilter] = useState<"Todos" | TicketStatus>("Todos");
+  const [userFilter, setUserFilter] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [tickets, setTickets] = useState<TicketRecord[]>([]);
+  const [filterUsers, setFilterUsers] = useState<Array<{ id: string; name: string }>>([]);
+  const [filterUsersLoading, setFilterUsersLoading] = useState(true);
+  const [filterUsersError, setFilterUsersError] = useState("");
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const requestId = useRef(0);
 
   const loadTickets = useCallback(async () => {
+    const currentRequestId = ++requestId.current;
     setLoading(true);
     try {
       const result = await listTickets({
         page,
         limit: 20,
         ...(statusFilter !== "Todos" ? { status: statusApiValues[statusFilter] } : {}),
+        ...(canFilterAllUsers && userFilter ? { userId: userFilter } : {}),
+        ...(canFilterAllUsers && dateFrom ? { dateFrom } : {}),
+        ...(canFilterAllUsers && dateTo ? { dateTo } : {}),
       });
+      if (currentRequestId !== requestId.current) return;
       setTickets(result.tickets);
       setTotal(result.total);
       setError("");
     } catch (loadError) {
+      if (currentRequestId !== requestId.current) return;
       setError(
         loadError instanceof ApiError
           ? loadError.message
           : "No se pudieron cargar los tickets.",
       );
     } finally {
-      setLoading(false);
+      if (currentRequestId === requestId.current) setLoading(false);
     }
-  }, [page, statusFilter]);
+  }, [canFilterAllUsers, dateFrom, dateTo, page, statusFilter, userFilter]);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => void loadTickets(), 0);
     return () => window.clearTimeout(timeoutId);
   }, [loadTickets]);
 
+  useEffect(() => {
+    if (!canFilterAllUsers) return;
+    let active = true;
+    getTicketFilterUsers()
+      .then((result) => {
+        if (active) {
+          setFilterUsers(result.users);
+          setFilterUsersError("");
+          setFilterUsersLoading(false);
+        }
+      })
+      .catch((loadError: unknown) => {
+        if (active) {
+          setFilterUsersError(
+            loadError instanceof ApiError
+              ? loadError.message
+              : "No se pudieron cargar los usuarios para filtrar.",
+          );
+          setFilterUsersLoading(false);
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [canFilterAllUsers]);
+
   const handleFilter = (filter: "Todos" | TicketStatus) => {
     setStatusFilter(filter);
     setPage(1);
   };
+  const handleUserFilter = (value: string) => {
+    setUserFilter(value);
+    setPage(1);
+  };
+  const handleDateFrom = (value: string) => {
+    setDateFrom(value);
+    setPage(1);
+  };
+  const handleDateTo = (value: string) => {
+    setDateTo(value);
+    setPage(1);
+  };
+  const clearFilters = () => {
+    setUserFilter("");
+    setDateFrom("");
+    setDateTo("");
+    setPage(1);
+  };
+  const columnCount = canFilterAllUsers ? 8 : 6;
 
   return (
     <section className="rounded-2xl border border-slate-300/80 bg-white p-4 shadow-md shadow-slate-900/[0.04] sm:p-6">
@@ -62,6 +124,24 @@ export function TicketTable() {
           <p className="text-sm font-medium text-[#002679]">Operación</p>
           <h3 className="mt-1 text-xl font-semibold text-[#002679]">Tickets registrados</h3>
           <div className="mt-3 h-0.5 w-10 rounded-full bg-[#EB7700]" aria-hidden="true" />
+          {canFilterAllUsers && (
+            <>
+              <TicketFilters
+                users={filterUsers}
+                userId={userFilter}
+                dateFrom={dateFrom}
+                dateTo={dateTo}
+                usersLoading={filterUsersLoading}
+                onUserChange={handleUserFilter}
+                onDateFromChange={handleDateFrom}
+                onDateToChange={handleDateTo}
+                onClear={clearFilters}
+              />
+              {filterUsersError && (
+                <p className="mt-2 text-sm text-red-700" role="alert">{filterUsersError}</p>
+              )}
+            </>
+          )}
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between xl:justify-end">
@@ -100,6 +180,8 @@ export function TicketTable() {
           <thead>
             <tr className="border-b border-slate-200 bg-[#F3F6FA] text-xs uppercase tracking-wide text-slate-600">
               <th scope="col" className="px-3 py-3 font-semibold first:rounded-l-lg">Ticket</th>
+              {canFilterAllUsers && <th scope="col" className="px-3 py-3 font-semibold">Usuario</th>}
+              {canFilterAllUsers && <th scope="col" className="px-3 py-3 font-semibold">Fecha</th>}
               <th scope="col" className="px-3 py-3 font-semibold">Cliente</th>
               <th scope="col" className="px-3 py-3 font-semibold">Proceso</th>
               <th scope="col" className="px-3 py-3 font-semibold">Abierto</th>
@@ -109,10 +191,10 @@ export function TicketTable() {
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={6} className="py-10 text-center text-sm text-slate-500">Cargando tickets...</td></tr>
+              <tr><td colSpan={columnCount} className="py-10 text-center text-sm text-slate-500">Cargando tickets...</td></tr>
             ) : error ? (
               <tr>
-                <td colSpan={6} className="py-8 text-center">
+                <td colSpan={columnCount} className="py-8 text-center">
                   <p className="text-sm text-red-700" role="alert">{error}</p>
                   <button type="button" onClick={() => void loadTickets()} className="mt-2 text-sm font-semibold text-[#002679] hover:underline">
                     Reintentar
@@ -120,10 +202,12 @@ export function TicketTable() {
                 </td>
               </tr>
             ) : tickets.length === 0 ? (
-              <tr><td colSpan={6} className="py-10 text-center text-sm text-slate-500">No hay tickets para este filtro.</td></tr>
+              <tr><td colSpan={columnCount} className="py-10 text-center text-sm text-slate-500">No hay tickets para este filtro.</td></tr>
             ) : tickets.map((ticket) => (
               <tr key={ticket.id} className="border-b border-slate-200/80 align-top text-sm text-slate-700 transition-colors hover:bg-[#F3F6FB]">
                 <td className="px-3 py-4 font-semibold text-[#002679]">{ticket.id}</td>
+                {canFilterAllUsers && <td className="px-3 py-4 font-medium text-slate-800">{ticket.creador ?? "—"}</td>}
+                {canFilterAllUsers && <td className="whitespace-nowrap px-3 py-4">{ticket.fechaCreacion ?? "—"}</td>}
                 <td className="px-3 py-4 font-medium text-slate-800">{ticket.cliente}</td>
                 <td className="min-w-52 px-3 py-4 text-slate-600">{ticket.proceso}</td>
                 <td className="whitespace-nowrap px-3 py-4">{ticket.abierto}</td>

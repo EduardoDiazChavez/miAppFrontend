@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { Archive, ArrowLeft, Check, LockKeyhole, Pencil, RotateCcw, Ticket, UserPlus } from "lucide-react";
+import { Archive, Check, LockKeyhole, Pencil, RotateCcw, Ticket, UserPlus } from "lucide-react";
 import { ApiError, apiRequest } from "@/src/features/auth/lib/api-client";
 import { SessionBar } from "@/src/features/auth/components/SessionBar";
 import { SessionGuard } from "@/src/features/auth/components/SessionGuard";
+import { BackLink } from "@/src/components/ui/back-link";
 
 type Organization = {
   id: string;
@@ -93,23 +94,17 @@ function AdminPageContent() {
       <div className="mx-auto max-w-7xl">
         <header className="mb-6 flex flex-col gap-5 border-b border-slate-300/80 pb-6 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#002679]">Administración</p>
+            <div className="flex items-center">
+              <BackLink href="/dashboard"> </BackLink>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#002679]">Administración</p>
+            </div>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[#002679]">Clientes</h1>
             <div className="mt-3 h-0.5 w-12 rounded-full bg-[#EB7700]" aria-hidden="true" />
             <p className="mt-3 max-w-2xl text-sm text-slate-600">
               Administra el acceso de cada cliente y define si el equipo puede abrirle tickets.
             </p>
           </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <Link
-              href="/dashboard"
-              className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-[#002679] shadow-sm transition hover:bg-[#F7F9FC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#002679] focus-visible:ring-offset-2"
-            >
-              <ArrowLeft aria-hidden="true" className="h-4 w-4" />
-              Volver al dashboard
-            </Link>
-            <SessionBar />
-          </div>
+          <SessionBar />
         </header>
 
         <div className="mb-6 flex flex-col gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-5">
@@ -132,9 +127,8 @@ function AdminPageContent() {
 
         {(error || notice) && (
           <p
-            className={`mb-5 rounded-xl border px-4 py-3 text-sm ${
-              error ? "border-red-200 bg-red-50 text-red-800" : "border-emerald-200 bg-emerald-50 text-emerald-800"
-            }`}
+            className={`mb-5 rounded-xl border px-4 py-3 text-sm ${error ? "border-red-200 bg-red-50 text-red-800" : "border-emerald-200 bg-emerald-50 text-emerald-800"
+              }`}
             role={error ? "alert" : "status"}
           >
             {error || notice}
@@ -178,13 +172,12 @@ function AdminPageContent() {
                           {organization.code || "Sin siglas"}
                         </span>
                         <span
-                          className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                            organization.archived
+                          className={`rounded-full px-2.5 py-1 text-xs font-medium ${organization.archived
                               ? "bg-slate-200 text-slate-700"
                               : organization.active
                                 ? "bg-emerald-100 text-emerald-800"
                                 : "bg-amber-100 text-amber-800"
-                          }`}
+                            }`}
                         >
                           {organization.archived ? "Archivado" : organization.active ? "Acceso activo" : "Acceso bloqueado"}
                         </span>

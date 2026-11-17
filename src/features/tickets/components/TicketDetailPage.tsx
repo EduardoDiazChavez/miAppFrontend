@@ -1,12 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { ArrowLeft, LoaderCircle } from "lucide-react";
+import { LoaderCircle } from "lucide-react";
 import { ApiError, apiRequest } from "@/src/features/auth/lib/api-client";
 import { useSession } from "@/src/features/auth/hooks/useSession";
 import type { TicketRecord } from "@/src/features/dashboard/data/mockData";
+import { BackLink } from "@/src/components/ui/back-link";
 import { getTicket, toTicketRecord, type ApiTicket } from "../lib/ticket-api";
 import { StatusBadge } from "@/src/features/dashboard/components/StatusBadge";
 import { TicketConversation } from "./TicketConversation";
@@ -95,7 +95,10 @@ export function TicketDetailPage() {
         <div className="mx-auto max-w-5xl">
           <header className="mb-6 flex flex-col gap-4 border-b border-slate-300/80 pb-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#002679]">Espacio de trabajo</p>
+              <div className="flex items-center">
+                <BackLink href={returnHref}>{isClient ? "" : ""}</BackLink>
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#002679]">Espacio de trabajo</p>
+              </div>
               <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[#002679] sm:text-3xl">Ticket no disponible</h1>
               <div className="mt-3 h-0.5 w-12 rounded-full bg-[#EB7700]" aria-hidden="true" />
             </div>
@@ -109,9 +112,6 @@ export function TicketDetailPage() {
               <button type="button" onClick={() => void loadTicket()} className="rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-[#002679] transition hover:bg-[#F3F6FA] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#002679]">
                 Reintentar
               </button>
-              <Link href={returnHref} className="rounded-xl bg-[#002679] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#001d5c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#002679] focus-visible:ring-offset-2">
-                Volver
-              </Link>
             </div>
           </div>
         </div>
@@ -124,20 +124,14 @@ export function TicketDetailPage() {
       <div className="mx-auto max-w-5xl">
         <header className="mb-6 flex flex-col gap-4 border-b border-slate-300/80 pb-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#002679]">Espacio de trabajo</p>
+            <div className="flex items-center">
+              <BackLink href={returnHref}>{isClient ? "" : ""}</BackLink>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#002679]">Espacio de trabajo</p>
+            </div>
             <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[#002679] sm:text-3xl">Detalle del ticket</h1>
             <div className="mt-3 h-0.5 w-12 rounded-full bg-[#EB7700]" aria-hidden="true" />
           </div>
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <SessionBar />
-            <Link
-              href={returnHref}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-[#002679] transition hover:bg-[#F3F6FA] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#002679]"
-            >
-              <ArrowLeft size={15} aria-hidden="true" />
-              {isClient ? "Volver al historial" : "Volver al dashboard"}
-            </Link>
-          </div>
+          <SessionBar />
         </header>
 
         <section className="rounded-2xl border border-slate-300/80 bg-white p-5 shadow-md shadow-slate-900/[0.04] sm:p-7">
@@ -169,12 +163,12 @@ export function TicketDetailPage() {
               <p className="mt-2 text-lg font-semibold text-slate-800">{ticket.horaApertura}</p>
             </div>
 
-            {!isClient && (
-              <div className="rounded-xl border border-slate-200 bg-[#F7F9FC] p-4">
-                <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-500">Hora de cierre</p>
-                <p className="mt-2 text-lg font-semibold text-slate-800">{ticket.horaCierre ?? "Sin cierre"}</p>
-              </div>
-            )}
+            <div className="rounded-xl border border-slate-200 bg-[#F7F9FC] p-4">
+              <p className="text-xs font-medium uppercase tracking-[0.2em] text-slate-500">Hora de cierre</p>
+              <p className="mt-2 text-lg font-semibold text-slate-800">
+                {ticket.horaCierre ?? (ticket.estado === "Cerrado" ? "No disponible" : "Sin cierre")}
+              </p>
+            </div>
           </div>
 
           <div className="mt-6 rounded-xl border border-slate-200 bg-[#F7F9FC] p-4">

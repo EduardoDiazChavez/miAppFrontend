@@ -1,40 +1,87 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ApiError } from "@/src/features/auth/lib/api-client";
 import { SessionBar } from "@/src/features/auth/components/SessionBar";
 import type { TicketRecord } from "@/src/features/dashboard/data/mockData";
-import { listTickets } from "@/src/features/tickets/lib/ticket-api";
+import { getTicketFilterUsers, listTickets } from "@/src/features/tickets/lib/ticket-api";
 import { StatusBadge } from "@/src/features/dashboard/components/StatusBadge";
+import { TicketFilters } from "@/src/features/tickets/components/TicketFilters";
 
 export function ClientPortalPage() {
   const [clientTickets, setClientTickets] = useState<TicketRecord[]>([]);
+  const [filterUsers, setFilterUsers] = useState<Array<{ id: string; name: string }>>([]);
+  const [filterUsersLoading, setFilterUsersLoading] = useState(true);
+  const [filterUsersError, setFilterUsersError] = useState("");
+  const [userFilter, setUserFilter] = useState("");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const requestId = useRef(0);
 
   const loadTickets = useCallback(async () => {
+    const currentRequestId = ++requestId.current;
     setLoading(true);
     try {
-      const result = await listTickets({ limit: 100 });
+      const result = await listTickets({
+        limit: 100,
+        ...(userFilter ? { userId: userFilter } : {}),
+        ...(dateFrom ? { dateFrom } : {}),
+        ...(dateTo ? { dateTo } : {}),
+      });
+      if (currentRequestId !== requestId.current) return;
       setClientTickets(result.tickets);
       setError("");
     } catch (loadError) {
+      if (currentRequestId !== requestId.current) return;
       setError(
         loadError instanceof ApiError
           ? loadError.message
           : "No se pudo cargar el historial de tickets.",
       );
     } finally {
-      setLoading(false);
+      if (currentRequestId === requestId.current) setLoading(false);
     }
-  }, []);
+  }, [dateFrom, dateTo, userFilter]);
 
   useEffect(() => {
     const timeoutId = window.setTimeout(() => void loadTickets(), 0);
     return () => window.clearTimeout(timeoutId);
   }, [loadTickets]);
 
+  useEffect(() => {
+    let active = true;
+    getTicketFilterUsers()
+      .then((result) => {
+        if (active) {
+          setFilterUsers(result.users);
+          setFilterUsersError("");
+          setFilterUsersLoading(false);
+        }
+      })
+      .catch((loadError: unknown) => {
+        if (active) {
+          setFilterUsersError(
+            loadError instanceof ApiError
+              ? loadError.message
+              : "No se pudieron cargar los usuarios para filtrar.",
+          );
+          setFilterUsersLoading(false);
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const clearFilters = () => {
+    setUserFilter("");
+    setDateFrom("");
+    setDateTo("");
+  };
+  const hasFilters = Boolean(userFilter || dateFrom || dateTo);
   const openCount = clientTickets.filter((ticket) => ticket.estado !== "Cerrado").length;
 
   return (
@@ -58,13 +105,13 @@ export function ClientPortalPage() {
 
         <section className="mb-6 grid gap-4 sm:grid-cols-2">
           <div className="rounded-2xl border border-slate-300/80 bg-white p-5 shadow-md shadow-slate-900/[0.04]">
-            <p className="text-sm text-slate-500">Tickets registrados</p>
+            <p className="text-sm text-slate-500">{hasFilters ? "Tickets encontrados" : "Tickets registrados"}</p>
             <p className="mt-2 text-3xl font-semibold text-[#002679]">
               {loading ? "—" : clientTickets.length}
             </p>
           </div>
           <div className="rounded-2xl border border-slate-300/80 bg-white p-5 shadow-md shadow-slate-900/[0.04]">
-            <p className="text-sm text-slate-500">Tickets en seguimiento</p>
+            <p className="text-sm text-slate-500">{hasFilters ? "En seguimiento" : "Tickets en seguimiento"}</p>
             <p className="mt-2 text-3xl font-semibold text-[#002679]">
               {loading ? "—" : openCount}
             </p>
@@ -76,6 +123,20 @@ export function ClientPortalPage() {
             <p className="text-sm font-medium text-[#002679]">Tu organización</p>
             <h2 className="mt-1 text-xl font-semibold text-[#002679]">Tus solicitudes</h2>
             <div className="mt-3 h-0.5 w-10 rounded-full bg-[#EB7700]" aria-hidden="true" />
+            <TicketFilters
+              users={filterUsers}
+              userId={userFilter}
+              dateFrom={dateFrom}
+              dateTo={dateTo}
+              usersLoading={filterUsersLoading}
+              onUserChange={setUserFilter}
+              onDateFromChange={setDateFrom}
+              onDateToChange={setDateTo}
+              onClear={clearFilters}
+            />
+            {filterUsersError && (
+              <p className="mt-2 text-sm text-red-700" role="alert">{filterUsersError}</p>
+            )}
           </div>
 
           {loading ? (
@@ -95,7 +156,9 @@ export function ClientPortalPage() {
             </div>
           ) : clientTickets.length === 0 ? (
             <p className="rounded-2xl bg-slate-50 p-6 text-sm text-slate-600">
-              Todavía no hay tickets asociados a tu cuenta.
+              {userFilter || dateFrom || dateTo
+                ? "No hay tickets para los filtros seleccionados."
+                : "Todavía no hay tickets asociados a tu organización."}
             </p>
           ) : (
             <div className="space-y-3">
@@ -111,7 +174,13 @@ export function ClientPortalPage() {
                     </div>
                     <p className="mt-2 font-medium text-slate-700">{ticket.proceso}</p>
                     <p className="mt-1 text-sm text-slate-500">
-                      Apertura {ticket.horaApertura}
+                      {ticket.creador && ticket.creador !== "—" ? `${ticket.creador} · ` : ""}
+                      {ticket.fechaCreacion ? `${ticket.fechaCreacion} · ` : ""}
+                      Hora de apertura: {ticket.horaApertura}
+                    </p>
+                    <p className="mt-1 text-sm text-slate-500">
+                      Hora de cierre:{" "}
+                      {ticket.horaCierre ?? (ticket.estado === "Cerrado" ? "No disponible" : "Sin cierre")}
                     </p>
                   </div>
                   <Link

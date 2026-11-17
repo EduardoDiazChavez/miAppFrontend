@@ -6,7 +6,9 @@ export type { UserRole } from "@/src/features/auth/types";
 export type TicketRecord = {
   id: string;
   cliente: string;
+  creador?: string;
   proceso: string;
+  fechaCreacion?: string;
   abierto: string;
   cierre: string;
   estado: TicketStatus;
