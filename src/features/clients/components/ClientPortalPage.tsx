@@ -5,9 +5,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ApiError } from "@/src/features/auth/lib/api-client";
 import { SessionBar } from "@/src/features/auth/components/SessionBar";
 import type { TicketRecord } from "@/src/features/dashboard/data/mockData";
+import { TicketFilterMenu } from "@/src/features/dashboard/components/TicketFilterMenu";
 import { getTicketFilterUsers, listTickets } from "@/src/features/tickets/lib/ticket-api";
 import { StatusBadge } from "@/src/features/dashboard/components/StatusBadge";
-import { TicketFilters } from "@/src/features/tickets/components/TicketFilters";
 
 export function ClientPortalPage() {
   const [clientTickets, setClientTickets] = useState<TicketRecord[]>([]);
@@ -119,24 +119,26 @@ export function ClientPortalPage() {
         </section>
 
         <section className="rounded-2xl border border-slate-300/80 bg-white p-5 shadow-md shadow-slate-900/[0.04] sm:p-7">
-          <div className="mb-5">
-            <p className="text-sm font-medium text-[#002679]">Tu organización</p>
-            <h2 className="mt-1 text-xl font-semibold text-[#002679]">Tus solicitudes</h2>
-            <div className="mt-3 h-0.5 w-10 rounded-full bg-[#EB7700]" aria-hidden="true" />
-            <TicketFilters
+          <div className="mb-5 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-medium text-[#002679]">Tu organización</p>
+              <h2 className="mt-1 text-xl font-semibold text-[#002679]">Tus solicitudes</h2>
+              <div className="mt-3 h-0.5 w-10 rounded-full bg-[#EB7700]" aria-hidden="true" />
+            </div>
+            <TicketFilterMenu
+              showStatusFilter={false}
+              showCreatorAndDateFilters
               users={filterUsers}
               userId={userFilter}
               dateFrom={dateFrom}
               dateTo={dateTo}
               usersLoading={filterUsersLoading}
+              usersError={filterUsersError}
               onUserChange={setUserFilter}
               onDateFromChange={setDateFrom}
               onDateToChange={setDateTo}
               onClear={clearFilters}
             />
-            {filterUsersError && (
-              <p className="mt-2 text-sm text-red-700" role="alert">{filterUsersError}</p>
-            )}
           </div>
 
           {loading ? (

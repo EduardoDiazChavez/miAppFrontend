@@ -5,11 +5,10 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ApiError } from "@/src/features/auth/lib/api-client";
 import { getTicketFilterUsers, listTickets } from "@/src/features/tickets/lib/ticket-api";
 import type { TicketRecord, TicketStatus } from "../data/mockData";
-import { TicketFilters } from "@/src/features/tickets/components/TicketFilters";
 import { useSession } from "@/src/features/auth/hooks/useSession";
 import { StatusBadge } from "./StatusBadge";
+import { TicketFilterMenu } from "./TicketFilterMenu";
 
-const filters: Array<"Todos" | TicketStatus> = ["Todos", "Abierto", "En revisión", "Pendiente cierre", "Cerrado"];
 const statusApiValues: Partial<Record<TicketStatus, string>> = {
   Abierto: "OPEN",
   "En revisión": "IN_PROGRESS",
@@ -110,6 +109,7 @@ export function TicketTable() {
     setPage(1);
   };
   const clearFilters = () => {
+    setStatusFilter("Todos");
     setUserFilter("");
     setDateFrom("");
     setDateTo("");
@@ -124,48 +124,25 @@ export function TicketTable() {
           <p className="text-sm font-medium text-[#002679]">Operación</p>
           <h3 className="mt-1 text-xl font-semibold text-[#002679]">Tickets registrados</h3>
           <div className="mt-3 h-0.5 w-10 rounded-full bg-[#EB7700]" aria-hidden="true" />
-          {canFilterAllUsers && (
-            <>
-              <TicketFilters
-                users={filterUsers}
-                userId={userFilter}
-                dateFrom={dateFrom}
-                dateTo={dateTo}
-                usersLoading={filterUsersLoading}
-                onUserChange={handleUserFilter}
-                onDateFromChange={handleDateFrom}
-                onDateToChange={handleDateTo}
-                onClear={clearFilters}
-              />
-              {filterUsersError && (
-                <p className="mt-2 text-sm text-red-700" role="alert">{filterUsersError}</p>
-              )}
-            </>
-          )}
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between xl:justify-end">
-          <div role="group" aria-label="Filtrar tickets por estado" className="flex flex-wrap gap-1 rounded-xl border border-slate-200 bg-[#F3F6FA] p-1">
-            {filters.map((filter) => {
-              const isActive = statusFilter === filter;
-
-              return (
-                <button
-                  key={filter}
-                  type="button"
-                  onClick={() => handleFilter(filter)}
-                  aria-pressed={isActive}
-                  className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#002679] focus-visible:ring-offset-1 ${
-                    isActive
-                      ? "bg-[#002679] text-white shadow-sm"
-                      : "text-slate-600 hover:bg-slate-50 hover:text-[#002679]"
-                  }`}
-                >
-                  <span>{filter}</span>
-                </button>
-              );
-            })}
-          </div>
+          <TicketFilterMenu
+            showStatusFilter
+            showCreatorAndDateFilters={canFilterAllUsers}
+            users={filterUsers}
+            userId={userFilter}
+            dateFrom={dateFrom}
+            dateTo={dateTo}
+            statusFilter={statusFilter}
+            usersLoading={filterUsersLoading}
+            usersError={filterUsersError}
+            onUserChange={handleUserFilter}
+            onDateFromChange={handleDateFrom}
+            onDateToChange={handleDateTo}
+            onStatusChange={handleFilter}
+            onClear={clearFilters}
+          />
 
           <div className="rounded-lg bg-[#F3F6FA] px-3 py-2 text-sm text-slate-600" aria-live="polite">
             {loading ? "Cargando tickets..." : (
