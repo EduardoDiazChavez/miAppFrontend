@@ -53,7 +53,7 @@ export function LoginPage() {
       <div className="pointer-events-none absolute -right-36 bottom-0 h-96 w-96 rounded-full bg-sky-200/40 blur-3xl" />
       <div className="relative mx-auto flex min-h-[calc(100vh-3rem)] max-w-6xl flex-col">
         <div className="my-auto grid overflow-hidden rounded-[2rem] border border-white/80 bg-white/80 shadow-[0_32px_100px_rgba(27,34,65,0.12)] backdrop-blur-xl lg:grid-cols-[1fr_0.88fr]">
-          <section className="relative flex min-h-[300px] flex-col justify-between overflow-hidden bg-[#15172a] p-8 text-white sm:p-12">
+          <section className="relative hidden min-h-[300px] flex-col justify-between overflow-hidden bg-[#15172a] p-8 text-white sm:p-12 lg:flex">
             <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-violet-500/40 blur-3xl" />
             <div className="absolute -bottom-28 left-10 h-72 w-72 rounded-full bg-sky-500/30 blur-3xl" />
             <div className="relative">
