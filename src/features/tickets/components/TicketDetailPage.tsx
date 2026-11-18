@@ -7,7 +7,12 @@ import { ApiError, apiRequest } from "@/src/features/auth/lib/api-client";
 import { useSession } from "@/src/features/auth/hooks/useSession";
 import type { TicketRecord } from "@/src/features/dashboard/data/mockData";
 import { BackLink } from "@/src/components/ui/back-link";
-import { getTicket, toTicketRecord, type ApiTicket } from "../lib/ticket-api";
+import {
+  getTicket,
+  toTicketRecord,
+  type ApiTicket,
+  type TicketSheetSyncStatus,
+} from "../lib/ticket-api";
 import { StatusBadge } from "@/src/features/dashboard/components/StatusBadge";
 import { TicketConversation } from "./TicketConversation";
 import { SessionBar } from "@/src/features/auth/components/SessionBar";
@@ -23,6 +28,8 @@ export function TicketDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [syncingSheet, setSyncingSheet] = useState(false);
+  const [sheetSync, setSheetSync] = useState<TicketSheetSyncStatus | null>(null);
 
   const loadTicket = useCallback(async () => {
     if (!ticketId) {
@@ -36,6 +43,7 @@ export function TicketDetailPage() {
       const result = await getTicket(ticketId);
       setRawTicket(result.ticket);
       setTicket(toTicketRecord(result.ticket));
+      setSheetSync(result.sheetSync ?? null);
       setError("");
     } catch (loadError) {
       setError(
@@ -53,6 +61,38 @@ export function TicketDetailPage() {
     return () => window.clearTimeout(timeoutId);
   }, [loadTicket]);
 
+  const syncTicketToSheet = async (targetTicketId: string) => {
+    setSyncingSheet(true);
+    setError("");
+    setSheetSync((current) => ({
+      status: "PENDING",
+      attempts: current?.attempts ?? 0,
+    }));
+    try {
+      await apiRequest<{ message: string; sync: { status: "SYNCED" } }>(
+        `/tickets/${encodeURIComponent(targetTicketId)}/sheets-sync`,
+        { method: "POST" },
+      );
+      setSheetSync((current) => ({
+        status: "SYNCED",
+        attempts: current?.attempts ?? 1,
+        syncedAt: new Date().toISOString(),
+      }));
+    } catch (syncError) {
+      setSheetSync((current) => ({
+        status: "FAILED",
+        attempts: current?.attempts ?? 0,
+      }));
+      setError(
+        syncError instanceof ApiError
+          ? `El ticket se cerró, pero no se pudo actualizar Google Sheets: ${syncError.message}`
+          : "El ticket se cerró, pero no se pudo actualizar Google Sheets.",
+      );
+    } finally {
+      setSyncingSheet(false);
+    }
+  };
+
   const closeTicket = async () => {
     if (!rawTicket) return;
     setSaving(true);
@@ -67,6 +107,7 @@ export function TicketDetailPage() {
       );
       setRawTicket(result.ticket);
       setTicket(toTicketRecord(result.ticket));
+      await syncTicketToSheet(ticketId);
     } catch (saveError) {
       setError(
         saveError instanceof ApiError
@@ -185,6 +226,25 @@ export function TicketDetailPage() {
                 className="rounded-xl bg-[#002679] px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#001d5c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#002679] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {saving ? "Actualizando..." : "Cerrar ticket"}
+              </button>
+            </div>
+          )}
+          {!isClient && ticket.estado === "Cerrado" && sheetSync?.status !== "SYNCED" && (
+            <div className="mt-6 flex flex-col gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm text-amber-900">
+                {syncingSheet
+                  ? "Actualizando la hoja de Google..."
+                  : sheetSync?.status === "FAILED"
+                    ? "El ticket está cerrado, pero falta sincronizar la hoja."
+                    : "El ticket está cerrado; la sincronización con la hoja está pendiente."}
+              </p>
+              <button
+                type="button"
+                disabled={syncingSheet || saving}
+                onClick={() => void syncTicketToSheet(ticketId)}
+                className="rounded-xl border border-amber-700 bg-white px-4 py-2.5 text-sm font-semibold text-amber-900 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {syncingSheet ? "Sincronizando..." : "Sincronizar / reintentar"}
               </button>
             </div>
           )}

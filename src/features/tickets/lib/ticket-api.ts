@@ -5,7 +5,7 @@ export type ApiTicket = {
   _id: string;
   code: string;
   organizationId: string | { name?: string };
-  title: string;
+  process: string;
   description: string;
   status: "OPEN" | "IN_PROGRESS" | "WAITING" | "CLOSED";
   createdBy?: { name?: string } | string;
@@ -17,11 +17,17 @@ export type ApiTicket = {
 
 export type OpenTicket = {
   code: string;
-  title: string;
+  process: string;
   status: "OPEN" | "IN_PROGRESS" | "WAITING";
 };
 
 export type TicketFilterUser = { id: string; name: string };
+export type TicketSheetSyncStatus = {
+  status: "PENDING" | "SYNCED" | "FAILED";
+  attempts: number;
+  lastError?: string;
+  syncedAt?: string;
+};
 
 const statusLabels: Record<ApiTicket["status"], TicketStatus> = {
   OPEN: "Abierto",
@@ -50,7 +56,7 @@ export function toTicketRecord(ticket: ApiTicket): TicketRecord {
       ticket.createdBy && typeof ticket.createdBy === "object"
         ? ticket.createdBy.name ?? "—"
         : "—",
-    proceso: ticket.title,
+    proceso: ticket.process,
     fechaCreacion: new Date(ticket.createdAt).toLocaleDateString("es", {
       day: "2-digit",
       month: "short",
@@ -113,7 +119,11 @@ export function getNextTicketSequence(organizationId: string) {
 }
 
 export function getTicket(ticketId: string) {
-  return apiRequest<{ ticket: ApiTicket; messages: ApiTicketMessage[] }>(
+  return apiRequest<{
+    ticket: ApiTicket;
+    messages: ApiTicketMessage[];
+    sheetSync?: TicketSheetSyncStatus;
+  }>(
     `/tickets/${encodeURIComponent(ticketId)}`,
   );
 }

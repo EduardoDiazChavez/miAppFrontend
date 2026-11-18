@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { Archive, Check, LockKeyhole, Pencil, RotateCcw, Ticket, UserPlus } from "lucide-react";
+import { Archive, Check, FileSpreadsheet, LockKeyhole, Pencil, RotateCcw, Ticket, UserPlus } from "lucide-react";
 import { ApiError, apiRequest } from "@/src/features/auth/lib/api-client";
 import { SessionBar } from "@/src/features/auth/components/SessionBar";
 import { SessionGuard } from "@/src/features/auth/components/SessionGuard";
@@ -116,13 +116,22 @@ function AdminPageContent() {
               {archivedCount} archivados
             </span>
           </div>
-          <Link
-            href="/admin/usuarios"
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#002679] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#001d5c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#002679] focus-visible:ring-offset-2"
-          >
-            <UserPlus aria-hidden="true" className="h-4 w-4" />
-            Crear cliente
-          </Link>
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/admin/hojas-google"
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-[#002679] bg-white px-4 py-2.5 text-sm font-semibold text-[#002679] shadow-sm transition hover:bg-[#F3F6FA] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#002679] focus-visible:ring-offset-2"
+            >
+              <FileSpreadsheet aria-hidden="true" className="h-4 w-4" />
+              Hojas de tickets
+            </Link>
+            <Link
+              href="/admin/usuarios"
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-[#002679] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#001d5c] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#002679] focus-visible:ring-offset-2"
+            >
+              <UserPlus aria-hidden="true" className="h-4 w-4" />
+              Crear cliente
+            </Link>
+          </div>
         </div>
 
         {(error || notice) && (

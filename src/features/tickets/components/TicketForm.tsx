@@ -222,7 +222,7 @@ export function TicketForm() {
           {selectedOpenTicket && (
             <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900" role="alert">
               Este cliente ya tiene un ticket abierto:{" "}
-              <strong>{selectedOpenTicket.code}</strong> — {selectedOpenTicket.title}. Cierra ese ticket antes de crear otro.
+              <strong>{selectedOpenTicket.code}</strong> — {selectedOpenTicket.process}. Cierra ese ticket antes de crear otro.
             </div>
           )}
 
