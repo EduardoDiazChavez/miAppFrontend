@@ -4,8 +4,9 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ApiError } from "@/src/features/auth/lib/api-client";
 import { getTicketFilterUsers, listTickets } from "@/src/features/tickets/lib/ticket-api";
-import type { TicketRecord, TicketStatus } from "../data/mockData";
+import type { TicketRecord, TicketStatus } from "@/src/features/tickets/types";
 import { useSession } from "@/src/features/auth/hooks/useSession";
+import { adminUserRoles } from "@/src/features/auth/types";
 import { StatusBadge } from "./StatusBadge";
 import { TicketFilterMenu } from "./TicketFilterMenu";
 
@@ -15,10 +16,11 @@ const statusApiValues: Partial<Record<TicketStatus, string>> = {
   "Pendiente cierre": "WAITING",
   Cerrado: "CLOSED",
 };
+const PAGE_SIZE = 6;
 
 export function TicketTable() {
   const { session } = useSession();
-  const canFilterAllUsers = session?.role === "Administrador";
+  const canFilterAllUsers = session !== null && adminUserRoles.includes(session.role);
   const [statusFilter, setStatusFilter] = useState<"Todos" | TicketStatus>("Todos");
   const [userFilter, setUserFilter] = useState("");
   const [dateFrom, setDateFrom] = useState("");
@@ -39,7 +41,7 @@ export function TicketTable() {
     try {
       const result = await listTickets({
         page,
-        limit: 20,
+        limit: PAGE_SIZE,
         ...(statusFilter !== "Todos" ? { status: statusApiValues[statusFilter] } : {}),
         ...(canFilterAllUsers && userFilter ? { userId: userFilter } : {}),
         ...(canFilterAllUsers && dateFrom ? { dateFrom } : {}),
@@ -143,12 +145,6 @@ export function TicketTable() {
             onStatusChange={handleFilter}
             onClear={clearFilters}
           />
-
-          <div className="rounded-lg bg-[#F3F6FA] px-3 py-2 text-sm text-slate-600" aria-live="polite">
-            {loading ? "Cargando tickets..." : (
-              <>Mostrando <span className="font-semibold text-[#002679]">{tickets.length}</span> de {total} tickets</>
-            )}
-          </div>
         </div>
       </div>
 
@@ -206,12 +202,12 @@ export function TicketTable() {
         </table>
       </div>
       <div className="mt-4 flex items-center justify-between border-t border-slate-200 pt-4">
-        <p className="text-xs text-slate-500">Página {page} de {Math.max(1, Math.ceil(total / 20))}</p>
+        <p className="text-xs text-slate-500">Página {page} de {Math.max(1, Math.ceil(total / PAGE_SIZE))}</p>
         <div className="flex gap-2">
           <button type="button" disabled={page <= 1 || loading} onClick={() => setPage((current) => current - 1)} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-[#002679] transition hover:bg-[#F3F6FA] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#002679] disabled:opacity-40">
             Anterior
           </button>
-          <button type="button" disabled={page * 20 >= total || loading} onClick={() => setPage((current) => current + 1)} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-[#002679] transition hover:bg-[#F3F6FA] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#002679] disabled:opacity-40">
+          <button type="button" disabled={page * PAGE_SIZE >= total || loading} onClick={() => setPage((current) => current + 1)} className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-semibold text-[#002679] transition hover:bg-[#F3F6FA] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#002679] disabled:opacity-40">
             Siguiente
           </button>
         </div>

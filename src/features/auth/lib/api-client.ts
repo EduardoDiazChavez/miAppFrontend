@@ -4,9 +4,9 @@ const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
 const roleMap: Record<string, UserRole> = {
   CLIENT: "Cliente",
-  OPERATOR: "Usuario",
-  SUPERVISOR: "Supervisor",
-  ADMIN: "Administrador",
+  ADVISOR: "Asesor",
+  ADMIN: "Admin",
+  SUPER_ADMIN: "Super admin",
 };
 
 export class ApiError extends Error {

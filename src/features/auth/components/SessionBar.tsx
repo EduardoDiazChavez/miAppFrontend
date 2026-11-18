@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ChevronDown, LogOut, UserPlus } from "lucide-react";
 import { apiRequest, notifySessionChanged } from "../lib/api-client";
 import { useSession } from "../hooks/useSession";
+import { adminUserRoles } from "../types";
 
 export function SessionBar() {
   const router = useRouter();
@@ -94,7 +95,7 @@ export function SessionBar() {
           <p className="mt-1 truncate text-xs text-slate-500">{session.email}</p>
           <p className="mt-2 inline-flex rounded-full bg-[#E8EEF8] px-2.5 py-1 text-xs font-medium text-[#002679]">{session.role}</p>
         </div>
-        {session.role === "Administrador" && (
+        {adminUserRoles.includes(session.role) && (
           <Link
             href="/admin"
             onNavigate={() => setIsOpen(false)}

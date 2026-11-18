@@ -35,6 +35,10 @@ npm.cmd run build
 
 La aplicación local se abre en `http://localhost:3000`.
 
+## Analítica web en Vercel
+
+La aplicación integra Vercel Web Analytics para contar visitas y páginas vistas, incluidas las navegaciones internas. Antes de recibir datos, habilita **Analytics** en el proyecto de Vercel y despliega la aplicación; los resultados se consultan en el panel de ese proyecto. El seguimiento elimina parámetros de búsqueda y fragmentos de las URL para no enviar identificadores de tickets ni tokens de invitación.
+
 ## Seguridad
 
 - No guardes secretos en variables `NEXT_PUBLIC_*`; Next.js las expone al navegador.

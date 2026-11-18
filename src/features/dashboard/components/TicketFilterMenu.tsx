@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, ListFilter, X } from "lucide-react";
-import type { TicketStatus } from "../data/mockData";
+import type { TicketStatus } from "@/src/features/tickets/types";
 import type { TicketFilterUser } from "@/src/features/tickets/lib/ticket-api";
 
 const statuses: Array<"Todos" | TicketStatus> = [

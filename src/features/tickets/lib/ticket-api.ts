@@ -1,5 +1,5 @@
 import { apiRequest } from "@/src/features/auth/lib/api-client";
-import type { TicketRecord, TicketStatus } from "@/src/features/dashboard/data/mockData";
+import type { TicketRecord, TicketStatus } from "@/src/features/tickets/types";
 
 export type ApiTicket = {
   _id: string;

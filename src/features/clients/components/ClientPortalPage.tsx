@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ApiError } from "@/src/features/auth/lib/api-client";
 import { SessionBar } from "@/src/features/auth/components/SessionBar";
-import type { TicketRecord } from "@/src/features/dashboard/data/mockData";
+import type { TicketRecord } from "@/src/features/tickets/types";
 import { TicketFilterMenu } from "@/src/features/dashboard/components/TicketFilterMenu";
 import { getTicketFilterUsers, listTickets } from "@/src/features/tickets/lib/ticket-api";
 import { StatusBadge } from "@/src/features/dashboard/components/StatusBadge";

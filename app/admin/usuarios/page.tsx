@@ -5,6 +5,7 @@ import { type FormEvent, useCallback, useEffect, useState } from "react";
 import { ApiError, apiRequest } from "@/src/features/auth/lib/api-client";
 import { SessionGuard } from "@/src/features/auth/components/SessionGuard";
 import { SessionBar } from "@/src/features/auth/components/SessionBar";
+import { adminUserRoles } from "@/src/features/auth/types";
 
 type Organization = {
   id: string;
@@ -14,8 +15,6 @@ type Organization = {
   archived: boolean;
 };
 type Invitation = { email: string; organization: string; url: string; expiresAt: string };
-type InternalRole = "OPERATOR" | "SUPERVISOR";
-
 function AdminUsersContent() {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [organizationName, setOrganizationName] = useState("");
@@ -25,7 +24,6 @@ function AdminUsersContent() {
   const [selectedOrganization, setSelectedOrganization] = useState("");
   const [internalName, setInternalName] = useState("");
   const [internalEmail, setInternalEmail] = useState("");
-  const [internalRole, setInternalRole] = useState<InternalRole>("OPERATOR");
   const [invitation, setInvitation] = useState<Invitation | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -110,7 +108,7 @@ function AdminUsersContent() {
     try {
       await apiRequest("/admin/users/internal", {
         method: "POST",
-        body: JSON.stringify({ name: internalName, email: internalEmail, role: internalRole }),
+        body: JSON.stringify({ name: internalName, email: internalEmail, role: "ADVISOR" }),
       });
       setInternalName("");
       setInternalEmail("");
@@ -231,18 +229,13 @@ function AdminUsersContent() {
           </section>
 
           <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-2">
-            <h2 className="text-lg font-semibold text-slate-900">Habilitar personal interno</h2>
+            <h2 className="text-lg font-semibold text-slate-900">Habilitar asesor</h2>
             <p className="mt-1 text-sm text-slate-500">El correo se autoriza aquí y el usuario inicia sesión con Google.</p>
-            <form onSubmit={handleCreateInternalUser} className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_200px_auto]">
+            <form onSubmit={handleCreateInternalUser} className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_auto]">
               <label className="sr-only" htmlFor="internal-name">Nombre del usuario</label>
               <input id="internal-name" required minLength={2} maxLength={120} value={internalName} onChange={(event) => setInternalName(event.target.value)} placeholder="Nombre completo" className="rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-[#002679] focus:ring-4 focus:ring-[#002679]/10" />
               <label className="sr-only" htmlFor="internal-email">Correo corporativo</label>
               <input id="internal-email" required type="email" maxLength={254} value={internalEmail} onChange={(event) => setInternalEmail(event.target.value)} placeholder="correo@empresa.com" className="rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-[#002679] focus:ring-4 focus:ring-[#002679]/10" />
-              <label className="sr-only" htmlFor="internal-role">Rol interno</label>
-              <select id="internal-role" value={internalRole} onChange={(event) => setInternalRole(event.target.value as InternalRole)} className="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none focus:border-[#002679] focus:ring-4 focus:ring-[#002679]/10">
-                <option value="OPERATOR">Usuario operativo</option>
-                <option value="SUPERVISOR">Supervisor</option>
-              </select>
               <button type="submit" disabled={loading} className="rounded-xl bg-[#002679] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#001d5c] disabled:opacity-60">
                 Autorizar acceso
               </button>
@@ -256,7 +249,7 @@ function AdminUsersContent() {
 
 export default function AdminUsuariosPage() {
   return (
-    <SessionGuard allowedRoles={["Administrador"]}>
+    <SessionGuard allowedRoles={adminUserRoles}>
       <AdminUsersContent />
     </SessionGuard>
   );

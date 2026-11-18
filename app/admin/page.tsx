@@ -7,6 +7,7 @@ import { ApiError, apiRequest } from "@/src/features/auth/lib/api-client";
 import { SessionBar } from "@/src/features/auth/components/SessionBar";
 import { SessionGuard } from "@/src/features/auth/components/SessionGuard";
 import { BackLink } from "@/src/components/ui/back-link";
+import { adminUserRoles } from "@/src/features/auth/types";
 
 type Organization = {
   id: string;
@@ -319,7 +320,7 @@ function AdminPageContent() {
 
 export default function AdminPage() {
   return (
-    <SessionGuard allowedRoles={["Administrador"]}>
+    <SessionGuard allowedRoles={adminUserRoles}>
       <AdminPageContent />
     </SessionGuard>
   );

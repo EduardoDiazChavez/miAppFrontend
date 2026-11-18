@@ -5,7 +5,7 @@ import { useCallback, useEffect, useState } from "react";
 import { LoaderCircle } from "lucide-react";
 import { ApiError, apiRequest } from "@/src/features/auth/lib/api-client";
 import { useSession } from "@/src/features/auth/hooks/useSession";
-import type { TicketRecord } from "@/src/features/dashboard/data/mockData";
+import type { TicketRecord } from "@/src/features/tickets/types";
 import { BackLink } from "@/src/components/ui/back-link";
 import { getTicket, toTicketRecord, type ApiTicket } from "../lib/ticket-api";
 import { StatusBadge } from "@/src/features/dashboard/components/StatusBadge";
