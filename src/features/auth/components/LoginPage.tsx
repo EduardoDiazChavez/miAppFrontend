@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { type FormEvent, useCallback, useState } from "react";
 import { Eye, EyeOff, LockKeyhole, Mail, ShieldCheck } from "lucide-react";
+import { BrandLogo } from "@/src/components/BrandLogo";
 import { ApiError, apiRequest, getHomeForRole, notifySessionChanged, toSessionUser, type ApiUser } from "../lib/api-client";
 import { GoogleLoginButton } from "./GoogleLoginButton";
 
@@ -49,22 +50,17 @@ export function LoginPage() {
 
   return (
     <main className="relative min-h-screen overflow-hidden bg-[#f7f8fc] px-4 py-6 text-slate-950 sm:px-8 sm:py-10">
-      <div className="pointer-events-none absolute -left-36 top-12 h-80 w-80 rounded-full bg-violet-200/50 blur-3xl" />
-      <div className="pointer-events-none absolute -right-36 bottom-0 h-96 w-96 rounded-full bg-sky-200/40 blur-3xl" />
+      <div className="pointer-events-none absolute -left-36 top-12 h-80 w-80 rounded-full bg-[#EB7700]/10 blur-3xl" />
+      <div className="pointer-events-none absolute -right-36 bottom-0 h-96 w-96 rounded-full bg-[#002679]/10 blur-3xl" />
       <div className="relative mx-auto flex min-h-[calc(100vh-3rem)] max-w-6xl flex-col">
         <div className="my-auto grid overflow-hidden rounded-[2rem] border border-white/80 bg-white/80 shadow-[0_32px_100px_rgba(27,34,65,0.12)] backdrop-blur-xl lg:grid-cols-[1fr_0.88fr]">
-          <section className="relative hidden min-h-[300px] flex-col justify-between overflow-hidden bg-[#15172a] p-8 text-white sm:p-12 lg:flex">
-            <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-violet-500/40 blur-3xl" />
-            <div className="absolute -bottom-28 left-10 h-72 w-72 rounded-full bg-sky-500/30 blur-3xl" />
+          <section className="relative hidden min-h-[300px] flex-col justify-between overflow-hidden bg-[#002679] p-8 text-white sm:p-12 lg:flex">
+            <div className="absolute -right-20 -top-20 h-72 w-72 rounded-full bg-[#EB7700]/35 blur-3xl" />
+            <div className="absolute -bottom-28 left-10 h-72 w-72 rounded-full bg-blue-400/30 blur-3xl" />
             <div className="relative">
-              <div className="inline-flex items-center gap-2 text-lg font-bold tracking-tight">
-                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-white text-sm font-black text-violet-700">
-                  m
-                </span>
-                miapp
-              </div>
+              <BrandLogo tone="dark" />
               <div className="mt-14 max-w-lg">
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-violet-200">
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-orange-200">
                   Un acceso, una experiencia a tu medida
                 </p>
                 <h1 className="mt-5 text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
@@ -76,14 +72,17 @@ export function LoginPage() {
               </div>
             </div>
             <div className="relative mt-12 flex items-center gap-3 text-sm text-slate-300">
-              <ShieldCheck size={18} className="text-emerald-300" aria-hidden="true" />
+              <ShieldCheck size={18} className="text-orange-200" aria-hidden="true" />
               Acceso protegido según tu perfil
             </div>
           </section>
 
           <section className="flex items-center justify-center p-6 sm:p-10 lg:p-12">
             <div className="w-full max-w-md">
-              <p className="text-sm font-semibold text-violet-700">Bienvenido a MiApp</p>
+              <div className="mb-6 flex justify-center lg:hidden">
+                <BrandLogo />
+              </div>
+              <p className="text-sm font-semibold text-[#002679]">Bienvenido a MiApp</p>
               <h2 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
                 Inicia sesión
               </h2>
@@ -145,7 +144,7 @@ export function LoginPage() {
                         value={username}
                         onChange={(event) => setUsername(event.target.value)}
                         placeholder="tu@empresa.com"
-                        className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-11 pr-4 text-sm outline-none transition placeholder:text-slate-400 focus:border-violet-400 focus:ring-4 focus:ring-violet-100"
+                        className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-11 pr-4 text-sm outline-none transition placeholder:text-slate-400 focus:border-[#002679] focus:ring-4 focus:ring-[#002679]/10"
                       />
                     </div>
                   </div>
@@ -165,13 +164,13 @@ export function LoginPage() {
                         value={password}
                         onChange={(event) => setPassword(event.target.value)}
                         placeholder="Tu contraseña"
-                        className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-11 pr-12 text-sm outline-none transition placeholder:text-slate-400 focus:border-violet-400 focus:ring-4 focus:ring-violet-100"
+                        className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-11 pr-12 text-sm outline-none transition placeholder:text-slate-400 focus:border-[#002679] focus:ring-4 focus:ring-[#002679]/10"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword((visible) => !visible)}
                         aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-400 hover:text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-violet-600"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-400 hover:text-slate-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#002679]"
                       >
                         {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
                       </button>
@@ -183,7 +182,7 @@ export function LoginPage() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="mt-2 w-full rounded-xl bg-[#5b4be8] px-4 py-3.5 text-sm font-semibold text-white shadow-lg shadow-violet-600/20 transition hover:bg-[#4b3bd3] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-600 disabled:cursor-wait disabled:opacity-70"
+                    className="mt-2 w-full rounded-xl bg-[#002679] px-4 py-3.5 text-sm font-semibold text-white shadow-lg shadow-[#002679]/20 transition hover:bg-[#001d5c] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#002679] disabled:cursor-wait disabled:opacity-70"
                   >
                     {loading ? "Verificando acceso..." : "Entrar al portal"}
                   </button>

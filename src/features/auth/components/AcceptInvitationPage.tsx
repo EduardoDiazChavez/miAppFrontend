@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { type FormEvent, useState } from "react";
+import { BrandLogo } from "@/src/components/BrandLogo";
 import { ApiError, apiRequest, getHomeForRole, notifySessionChanged, toSessionUser, type ApiUser } from "../lib/api-client";
 
 export function AcceptInvitationPage() {
@@ -45,8 +46,10 @@ export function AcceptInvitationPage() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-[#f7f8fc] px-4 py-10">
       <section className="w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/50 sm:p-9">
-        <Link href="/" className="text-sm font-bold text-violet-700">miapp</Link>
-        <p className="mt-8 text-sm font-semibold text-violet-700">Invitación de cliente</p>
+        <Link href="/" aria-label="MRM MiApp">
+          <BrandLogo />
+        </Link>
+        <p className="mt-8 text-sm font-semibold text-[#002679]">Invitación de cliente</p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">Activa tu cuenta</h1>
         <p className="mt-3 text-sm leading-6 text-slate-600">
           Define una contraseña para entrar al portal y seguir tus tickets.
@@ -69,7 +72,7 @@ export function AcceptInvitationPage() {
                 maxLength={128}
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-400 focus:ring-4 focus:ring-violet-100"
+                className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#002679] focus:ring-4 focus:ring-[#002679]/10"
               />
               <p className="text-xs text-slate-500">Usa al menos 10 caracteres.</p>
             </div>
@@ -84,11 +87,11 @@ export function AcceptInvitationPage() {
                 maxLength={128}
                 value={confirmation}
                 onChange={(event) => setConfirmation(event.target.value)}
-                className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-violet-400 focus:ring-4 focus:ring-violet-100"
+                className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm outline-none focus:border-[#002679] focus:ring-4 focus:ring-[#002679]/10"
               />
             </div>
             {error && <p className="text-sm text-red-700" role="alert">{error}</p>}
-            <button type="submit" disabled={loading} className="w-full rounded-xl bg-[#5b4be8] px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-[#4b3bd3] disabled:opacity-60">
+            <button type="submit" disabled={loading} className="w-full rounded-xl bg-[#002679] px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-[#001d5c] disabled:opacity-60">
               {loading ? "Activando cuenta..." : "Activar cuenta"}
             </button>
           </form>

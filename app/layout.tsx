@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "MiApp | Gestión de servicios y tickets",
+  title: "MRM | MiApp",
   description: "Gestiona tickets, conversaciones y seguimiento de servicios en un solo lugar.",
 };
 

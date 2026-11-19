@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ChevronDown, LogOut, UserPlus } from "lucide-react";
+import { BrandLogo } from "@/src/components/BrandLogo";
 import { apiRequest, notifySessionChanged } from "../lib/api-client";
 import { useSession } from "../hooks/useSession";
 import { adminUserRoles } from "../types";
@@ -63,7 +64,8 @@ export function SessionBar() {
   };
 
   return (
-    <div ref={containerRef} className="group relative w-full sm:w-auto">
+    <div ref={containerRef} className="group relative flex w-full items-center justify-between gap-2 sm:w-auto sm:justify-end sm:gap-4">
+      <BrandLogo />
       <button
         ref={triggerRef}
         type="button"
@@ -71,7 +73,7 @@ export function SessionBar() {
         aria-expanded={isOpen}
         aria-controls="session-user-menu"
         onClick={() => setIsOpen((open) => !open)}
-        className="flex w-full items-center gap-3 rounded-xl border border-slate-300 bg-white py-2 pl-2 pr-3 text-left shadow-sm transition hover:border-[#002679]/30 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#002679] focus-visible:ring-offset-2 sm:w-auto"
+        className="flex min-w-0 flex-1 items-center gap-3 rounded-xl border border-slate-300 bg-white py-2 pl-2 pr-3 text-left shadow-sm transition hover:border-[#002679]/30 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#002679] focus-visible:ring-offset-2 sm:flex-none"
       >
         <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#002679] text-sm font-semibold text-white">
           {initials}
