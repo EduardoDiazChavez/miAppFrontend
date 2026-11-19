@@ -6,6 +6,7 @@ import { ApiError, apiRequest } from "@/src/features/auth/lib/api-client";
 import { SessionGuard } from "@/src/features/auth/components/SessionGuard";
 import { SessionBar } from "@/src/features/auth/components/SessionBar";
 import { adminUserRoles } from "@/src/features/auth/types";
+import { BackLink } from "@/src/components/ui/back-link";
 
 type Organization = {
   id: string;
@@ -22,8 +23,6 @@ function AdminUsersContent() {
   const [clientName, setClientName] = useState("");
   const [clientEmail, setClientEmail] = useState("");
   const [selectedOrganization, setSelectedOrganization] = useState("");
-  const [internalName, setInternalName] = useState("");
-  const [internalEmail, setInternalEmail] = useState("");
   const [invitation, setInvitation] = useState<Invitation | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -100,26 +99,6 @@ function AdminUsersContent() {
     }
   };
 
-  const handleCreateInternalUser = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    setError("");
-    setNotice("");
-    setLoading(true);
-    try {
-      await apiRequest("/admin/users/internal", {
-        method: "POST",
-        body: JSON.stringify({ name: internalName, email: internalEmail, role: "ADVISOR" }),
-      });
-      setInternalName("");
-      setInternalEmail("");
-      setNotice("Cuenta interna creada. El usuario podrá vincularse con Google usando ese correo.");
-    } catch (createError) {
-      setError(createError instanceof ApiError ? createError.message : "No se pudo crear la cuenta interna.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const copyInvitation = async () => {
     if (!invitation) return;
     try {
@@ -135,8 +114,10 @@ function AdminUsersContent() {
       <div className="mx-auto max-w-6xl">
         <header className="mb-8 flex flex-wrap items-end justify-between gap-4">
           <div>
-            <Link href="/admin" className="text-sm font-medium text-[#002679] hover:text-[#001d5c]">← Clientes</Link>
-            <p className="mt-4 text-sm font-semibold uppercase tracking-[0.18em] text-[#002679]">Cuentas y acceso</p>
+            <div className="flex items-center gap-2">
+              <BackLink href="/admin"> </BackLink>
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#002679]">Cuentas y acceso</p>
+            </div>
             <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[#002679]">Crear cliente</h1>
             <div className="mt-3 h-0.5 w-12 rounded-full bg-[#EB7700]" aria-hidden="true" />
             <p className="mt-2 max-w-2xl text-sm text-slate-600">
@@ -228,19 +209,6 @@ function AdminUsersContent() {
             )}
           </section>
 
-          <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-2">
-            <h2 className="text-lg font-semibold text-slate-900">Habilitar asesor</h2>
-            <p className="mt-1 text-sm text-slate-500">El correo se autoriza aquí y el usuario inicia sesión con Google.</p>
-            <form onSubmit={handleCreateInternalUser} className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_1fr_auto]">
-              <label className="sr-only" htmlFor="internal-name">Nombre del usuario</label>
-              <input id="internal-name" required minLength={2} maxLength={120} value={internalName} onChange={(event) => setInternalName(event.target.value)} placeholder="Nombre completo" className="rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-[#002679] focus:ring-4 focus:ring-[#002679]/10" />
-              <label className="sr-only" htmlFor="internal-email">Correo corporativo</label>
-              <input id="internal-email" required type="email" maxLength={254} value={internalEmail} onChange={(event) => setInternalEmail(event.target.value)} placeholder="correo@empresa.com" className="rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none focus:border-[#002679] focus:ring-4 focus:ring-[#002679]/10" />
-              <button type="submit" disabled={loading} className="rounded-xl bg-[#002679] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#001d5c] disabled:opacity-60">
-                Autorizar acceso
-              </button>
-            </form>
-          </section>
         </div>
       </div>
     </main>
